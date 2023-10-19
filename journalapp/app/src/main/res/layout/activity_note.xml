@@ -1,80 +1,176 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<!--<?xml version="1.0" encoding="utf-8"?>-->
+<!--<LinearLayout-->
+<!--    xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--    android:orientation="vertical"-->
+<!--    android:layout_width="match_parent"-->
+<!--    android:layout_height="match_parent">-->
+
+<!--    <androidx.appcompat.widget.Toolbar-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:background="@color/dark_gray"-->
+<!--        android:minHeight="?actionBarSize"-->
+<!--        android:theme="?actionBarTheme">-->
+
+<!--        <TextView-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_gravity="center"-->
+<!--            android:text="Title"-->
+<!--            text-->
+<!--            android:textColor="@color/white"-->
+<!--            android:textSize="35sp"-->
+<!--            android:textStyle="bold" />-->
+
+<!--        <ImageButton-->
+<!--            android:layout_width="150px"-->
+<!--            android:layout_height="150px"-->
+<!--            android:layout_gravity="start"-->
+<!--            android:backgroundTint="@color/white"-->
+<!--            android:onClick="saveNote"-->
+<!--            android:src="@drawable/back"-->
+<!--            android:scaleType="fitCenter"-->
+
+<!--            android:textColor="@color/dark_gray"-->
+<!--            android:textSize="25sp"-->
+<!--            android:textStyle="bold" />-->
+
+<!--    </androidx.appcompat.widget.Toolbar>-->
+
+<!--    <TextView-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_gravity="center"-->
+<!--        android:layout_marginTop="20dp"-->
+<!--        android:text="Title"-->
+<!--        android:textColor="@color/white"-->
+<!--        android:textSize="25sp"-->
+<!--        android:textStyle="bold" />-->
+
+<!--    <EditText-->
+<!--        android:id="@+id/titleEditText"-->
+<!--        android:layout_width="300dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:textSize="25sp"-->
+<!--        android:layout_marginTop="20dp"-->
+<!--        android:maxLines="1"-->
+<!--        android:textColor="@color/dark_gray"-->
+<!--        android:layout_gravity="center"/>-->
+
+
+<!--    <TextView-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="Description"-->
+<!--        android:textSize="25sp"-->
+<!--        android:layout_marginTop="20dp"-->
+<!--        android:textColor="@color/dark_gray"-->
+<!--        android:textStyle="bold"-->
+<!--        android:layout_gravity="center"/>-->
+
+<!--    <EditText-->
+<!--        android:id="@+id/descriptionEditText"-->
+<!--        android:layout_width="300dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:textSize="25sp"-->
+<!--        android:layout_marginTop="20dp"-->
+<!--        android:minLines="3"-->
+<!--        android:textColor="@color/dark_gray"-->
+<!--        android:layout_gravity="center"/>-->
+
+<!--    <TextView-->
+<!--        android:id="@+id/textView"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="TextView" />-->
+
+<!--</LinearLayout>-->
+
+
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/white">
+
+    `
 
     <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/dark_gray"
+        android:layout_height="57dp"
+        android:background="@color/white"
         android:minHeight="?actionBarSize"
         android:theme="?actionBarTheme">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="DETAIL"
-            android:textColor="@color/white"
-            android:textSize="35sp"
-            android:textStyle="bold" />
-
         <ImageButton
-            android:layout_width="150px"
-            android:layout_height="150px"
-            android:layout_gravity="start"
+            android:id="@+id/backArrow"
+            android:layout_width="41dp"
+            android:layout_height="45dp"
             android:backgroundTint="@color/white"
             android:onClick="saveNote"
-            android:src="@drawable/back"
             android:scaleType="fitCenter"
+            android:src="@drawable/back" />
 
-            android:textColor="@color/dark_gray"
-            android:textSize="25sp"
-            android:textStyle="bold" />
+        <EditText
+            android:id="@+id/titleEditText"
+            android:layout_width="144dp"
+            android:layout_height="36dp"
+            android:layout_marginLeft="55dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="57dp"
+            android:layout_toLeftOf="@id/infoIcon"
+            android:layout_toRightOf="@id/backArrow"
+            android:background="@null"
+            android:gravity="center"
+            android:hint="Enter Topic"
+            android:textColor="#000"
+            android:textSize="16sp" />
+
+        <ImageButton
+            android:id="@+id/infoIcon"
+            android:layout_width="49dp"
+            android:layout_height="46dp"
+            android:layout_marginEnd="65dp"
+            android:backgroundTint="@color/white"
+            android:scaleType="fitCenter"
+            android:src="@drawable/i_icon" />
+
+        <ImageButton
+            android:id="@+id/optionsIcon"
+            android:layout_width="49dp"
+            android:layout_height="46dp"
+            android:layout_gravity="end"
+            android:backgroundTint="@color/white"
+            android:scaleType="fitCenter"
+            android:src="@drawable/dots" />
+
 
     </androidx.appcompat.widget.Toolbar>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Title"
-        android:textSize="25sp"
-        android:layout_marginTop="20dp"
-        android:textColor="@color/white"
-        android:textStyle="bold"
-        android:layout_gravity="center"/>
-
     <EditText
-        android:id="@+id/titleEditText"
-        android:layout_width="300dp"
+        android:id="@+id/dateText"
+        android:layout_width="136dp"
         android:layout_height="wrap_content"
-        android:textSize="25sp"
-        android:layout_marginTop="20dp"
-        android:maxLines="1"
-        android:textColor="@color/dark_gray"
-        android:layout_gravity="center"/>
-
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Description"
-        android:textSize="25sp"
-        android:layout_marginTop="20dp"
-        android:textColor="@color/dark_gray"
-        android:textStyle="bold"
-        android:layout_gravity="center"/>
+        android:layout_below="@id/toolbar"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="14dp"
+        android:background="@null"
+        android:hint="Date"
+        android:textColor="#000"
+        android:textSize="16sp" />
 
     <EditText
         android:id="@+id/descriptionEditText"
-        android:layout_width="300dp"
-        android:layout_height="wrap_content"
-        android:textSize="25sp"
-        android:layout_marginTop="20dp"
-        android:minLines="3"
-        android:textColor="@color/dark_gray"
-        android:layout_gravity="center"/>
+        android:layout_width="363dp"
+        android:layout_height="641dp"
+        android:layout_below="@+id/dateText"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="28dp"
+        android:layout_marginRight="16dp"
+        android:background="#FFFACD"
+        android:gravity="center"
+        android:hint="Type here..."
+        android:padding="10dp" />
+</RelativeLayout>
 
-</LinearLayout>
