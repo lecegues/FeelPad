@@ -8,29 +8,31 @@
     <androidx.appcompat.widget.Toolbar
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@color/dark_gray"
         android:minHeight="?actionBarSize"
-        android:theme="?actionBarTheme"
-        android:background="@color/dark_gray">
+        android:theme="?actionBarTheme">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:text="DETAIL"
-            android:textSize="35sp"
             android:textColor="@color/white"
-            android:textStyle="bold"
-            android:layout_gravity="center"/>
+            android:textSize="35sp"
+            android:textStyle="bold" />
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Save"
-            android:textSize="25sp"
+        <ImageButton
+            android:layout_width="150px"
+            android:layout_height="150px"
+            android:layout_gravity="start"
             android:backgroundTint="@color/white"
+            android:onClick="saveNote"
+            android:src="@drawable/back"
+            android:scaleType="fitCenter"
+
             android:textColor="@color/dark_gray"
-            android:textStyle="bold"
-            android:layout_gravity="end"
-            android:onClick="saveNote"/>
+            android:textSize="25sp"
+            android:textStyle="bold" />
 
     </androidx.appcompat.widget.Toolbar>
 
@@ -40,7 +42,7 @@
         android:text="Title"
         android:textSize="25sp"
         android:layout_marginTop="20dp"
-        android:textColor="@color/dark_gray"
+        android:textColor="@color/white"
         android:textStyle="bold"
         android:layout_gravity="center"/>
 

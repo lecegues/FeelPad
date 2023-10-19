@@ -38,9 +38,9 @@
         android:id="@+id/noteListView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:listitem="@layout/note_cell"
-        android:padding="@dimen/cardview_default_radius"
         android:divider="@color/dark_gray"
-        android:dividerHeight="3dp" />
+        android:dividerHeight="3dp"
+        android:padding="@dimen/cardview_default_radius"
+        tools:listitem="@layout/note_cell" />
 
 </LinearLayout>
