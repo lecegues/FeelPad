@@ -3,6 +3,7 @@ package com.example.journalapp;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
@@ -15,19 +16,29 @@ import java.util.Date;
 
 public class NewNoteActivity extends AppCompatActivity {
     private EditText titleEditText, descriptionEditText;
+    private TextView dateTextView;
     private NoteViewModel noteViewModel;
+    private Date currentDate;
 
     @Override
     protected void onCreate(Bundle saveInstanceState) {
         super.onCreate(saveInstanceState);
         setContentView(R.layout.activity_note);
         initWidgets();
+        setCurrentDate();
     }
 
     private void initWidgets() {
+        dateTextView = findViewById(R.id.dateTextView);
         titleEditText = findViewById(R.id.titleEditText);
         descriptionEditText = findViewById(R.id.descriptionEditText);
         noteViewModel = new ViewModelProvider(this).get(NoteViewModel.class);
+    }
+
+    private void setCurrentDate() {
+        // TODO: Possibly allow the user to update the date
+        currentDate = new Date();
+        dateTextView.setText(currentDate.toString());
     }
 
     public void saveNote(View view) {
@@ -36,8 +47,7 @@ public class NewNoteActivity extends AppCompatActivity {
         if (title.isEmpty() || desc.isEmpty()) {
             return;
         }
-        Note newNote = new Note(title, desc,
-                DateUtils.DateToString(new Date()));
+        Note newNote = new Note(title, desc, DateUtils.DateToString(currentDate));
         noteViewModel.createNote(newNote);
         finish();
     }
