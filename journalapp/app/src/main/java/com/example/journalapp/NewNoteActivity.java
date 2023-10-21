@@ -3,6 +3,7 @@ package com.example.journalapp;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,7 +26,21 @@ public class NewNoteActivity extends AppCompatActivity {
         super.onCreate(saveInstanceState);
         setContentView(R.layout.activity_note);
         initWidgets();
+        initOptionsMenu();
         setCurrentDate();
+    }
+
+    private void initOptionsMenu() {
+        findViewById(R.id.optionsMenu).setOnClickListener(view -> {
+            PopupMenu popupMenu = new PopupMenu(this, view);
+            popupMenu.getMenuInflater().inflate(R.menu.journal_options_menu, popupMenu.getMenu());
+            popupMenu.show();
+        });
+        findViewById(R.id.infoMenu).setOnClickListener(view -> {
+            PopupMenu popupMenu = new PopupMenu(this, view);
+            popupMenu.getMenuInflater().inflate(R.menu.journal_information_menu, popupMenu.getMenu());
+            popupMenu.show();
+        });
     }
 
     private void initWidgets() {

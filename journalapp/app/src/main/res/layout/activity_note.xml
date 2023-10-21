@@ -27,7 +27,6 @@
             android:layout_marginLeft="55dp"
             android:layout_marginTop="5dp"
             android:layout_marginRight="57dp"
-            android:layout_toLeftOf="@id/infoIcon"
             android:layout_toRightOf="@id/backArrow"
             android:background="@null"
             android:gravity="center"
@@ -36,7 +35,7 @@
             android:textSize="16sp" />
 
         <ImageButton
-            android:id="@+id/infoIcon"
+            android:id="@+id/infoMenu"
             android:layout_width="49dp"
             android:layout_height="46dp"
             android:layout_marginEnd="65dp"
@@ -45,7 +44,7 @@
             android:src="@drawable/i_icon" />
 
         <ImageButton
-            android:id="@+id/optionsIcon"
+            android:id="@+id/optionsMenu"
             android:layout_width="49dp"
             android:layout_height="46dp"
             android:layout_gravity="end"
