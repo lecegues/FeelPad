@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">journalapp</string>
+    <string name="search_button">search button</string>
+    <string name="template_button">template button</string>
+    <string name="add_note_button">Add note button</string>
+    <string name="combine_psd_button">combine psd button</string>
+    <string name="this_is_a_downward_arrow_button">This is a downward arrow button</string>
+    <string name="title_image_view">title image view</string>
 </resources>
