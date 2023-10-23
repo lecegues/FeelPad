@@ -2,20 +2,39 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item android:id="@+id/item1"
-        android:title="Add Image/Video"
-        app:showAsAction="never"
-        android:icon="@drawable/image_icon"/>
+    <item
+        android:id="@+id/item1"
+        android:icon="@drawable/image_icon"
+        android:title="Add Photo/"
+        app:showAsAction="never" />
 
-    <item android:id="@+id/item2"
+    <item
+        android:id="@+id/item2"
+        android:title="Video"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/item3"
+        android:icon="@drawable/voice_icon"
         android:title="Add Voice Note"
-        app:showAsAction="never"
-        android:icon="@drawable/voice"/>
+        app:showAsAction="never" />
 
-    <item android:id="@+id/item3"
+    <item
+        android:id="@+id/item4"
+        android:icon="@drawable/add_icon"
         android:title="Insert"
-        app:showAsAction="never"/>
+        app:showAsAction="never" />
 
+    <item
+        android:id="@+id/item5"
+        android:icon="@drawable/save_icon"
+        android:title="Save Note"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/item6"
+        android:title="Add Template"
+        app:showAsAction="never" />
 
 
 </menu>

@@ -13,6 +13,7 @@ import com.example.journalapp.note.Note;
 import com.example.journalapp.note.NoteViewModel;
 import com.example.journalapp.utils.DateUtils;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
 
 public class NewNoteActivity extends AppCompatActivity {
@@ -34,12 +35,14 @@ public class NewNoteActivity extends AppCompatActivity {
         findViewById(R.id.optionsMenu).setOnClickListener(view -> {
             PopupMenu popupMenu = new PopupMenu(this, view);
             popupMenu.getMenuInflater().inflate(R.menu.journal_options_menu, popupMenu.getMenu());
-            popupMenu.show();
-        });
-        findViewById(R.id.infoMenu).setOnClickListener(view -> {
-            PopupMenu popupMenu = new PopupMenu(this, view);
-            popupMenu.getMenuInflater().inflate(R.menu.journal_information_menu, popupMenu.getMenu());
-            popupMenu.show();
+            try {
+                popupMenu.getClass().getDeclaredMethod("setForceShowIcon", boolean.class)
+                        .invoke(popupMenu, true);
+            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                e.printStackTrace();
+            } finally {
+                popupMenu.show();
+            }
         });
     }
 
