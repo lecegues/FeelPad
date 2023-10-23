@@ -1,16 +1,15 @@
 package com.example.journalapp;
 
-        import android.content.Intent;
-        import android.os.Bundle;
-        import android.view.View;
-        import android.widget.ImageButton;
+import android.content.Intent;
+import android.os.Bundle;
+import android.widget.ImageButton;
 
-        import androidx.appcompat.app.AppCompatActivity;
-        import androidx.lifecycle.ViewModelProvider;
-        import androidx.recyclerview.widget.LinearLayoutManager;
-        import androidx.recyclerview.widget.RecyclerView;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-        import com.example.journalapp.note.NoteViewModel;
+import com.example.journalapp.note.NoteViewModel;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -31,38 +30,23 @@ public class MainActivity extends AppCompatActivity {
          ImageButton searchButton = findViewById(R.id.search);
          ImageButton templateButton = findViewById(R.id.template);
 
-         arrowButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Handle the click for the arrow button here
-            }
-       });
-         combinePdfButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Handle the click for the combine PDF button here
-            }
+         arrowButton.setOnClickListener(v -> {
+             // Handle the click for the arrow button here
          });
-         addNoteButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Handle the click for the add note button here
-                Intent intent = new Intent(MainActivity.this, NewNoteActivity.class);
-                startActivity(intent);
-            }
+         combinePdfButton.setOnClickListener(v -> {
+             // Handle the click for the combine PDF button here
          });
-         searchButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Handle the click for the search button here
-            }
+         addNoteButton.setOnClickListener(v -> {
+             // Handle the click for the add note button here
+             Intent intent = new Intent(MainActivity.this, NewNoteActivity.class);
+             startActivity(intent);
+         });
+         searchButton.setOnClickListener(v -> {
+             // Handle the click for the search button here
          });
 
-         templateButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Handle the click for the template button here
-            }
+         templateButton.setOnClickListener(v -> {
+             // Handle the click for the template button here
          });
     }
 
@@ -79,11 +63,6 @@ public class MainActivity extends AppCompatActivity {
         noteListAdapter = new NoteListAdapter(new NoteListAdapter.NoteDiff());
         noteRecycleView.setAdapter(noteListAdapter);
         noteRecycleView.setLayoutManager(new LinearLayoutManager(this));
-    }
-
-    public void newNote(View view) {
-        Intent intent = new Intent(this, NewNoteActivity.class);
-        startActivity(intent);
     }
 
     @Override
