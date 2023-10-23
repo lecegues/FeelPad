@@ -16,7 +16,6 @@ public class MainActivity extends AppCompatActivity {
     private NoteListAdapter noteListAdapter;
 
 
-
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -24,30 +23,30 @@ public class MainActivity extends AppCompatActivity {
         createNoteObserver();
 
 
-         ImageButton arrowButton = findViewById(R.id.arrowdown);
-         ImageButton combinePdfButton = findViewById(R.id.combinePDF);
-         ImageButton addNoteButton = findViewById(R.id.addNote);
-         ImageButton searchButton = findViewById(R.id.search);
-         ImageButton templateButton = findViewById(R.id.template);
+        ImageButton arrowButton = findViewById(R.id.arrowdown);
+        ImageButton combinePdfButton = findViewById(R.id.combinePDF);
+        ImageButton addNoteButton = findViewById(R.id.addNote);
+        ImageButton searchButton = findViewById(R.id.search);
+        ImageButton templateButton = findViewById(R.id.template);
 
-         arrowButton.setOnClickListener(v -> {
-             // Handle the click for the arrow button here
-         });
-         combinePdfButton.setOnClickListener(v -> {
-             // Handle the click for the combine PDF button here
-         });
-         addNoteButton.setOnClickListener(v -> {
-             // Handle the click for the add note button here
-             Intent intent = new Intent(MainActivity.this, NewNoteActivity.class);
-             startActivity(intent);
-         });
-         searchButton.setOnClickListener(v -> {
-             // Handle the click for the search button here
-         });
+        arrowButton.setOnClickListener(v -> {
+            // Handle the click for the arrow button here
+        });
+        combinePdfButton.setOnClickListener(v -> {
+            // Handle the click for the combine PDF button here
+        });
+        addNoteButton.setOnClickListener(v -> {
+            // Handle the click for the add note button here
+            Intent intent = new Intent(MainActivity.this, NewNoteActivity.class);
+            startActivity(intent);
+        });
+        searchButton.setOnClickListener(v -> {
+            // Handle the click for the search button here
+        });
 
-         templateButton.setOnClickListener(v -> {
-             // Handle the click for the template button here
-         });
+        templateButton.setOnClickListener(v -> {
+            // Handle the click for the template button here
+        });
     }
 
 
