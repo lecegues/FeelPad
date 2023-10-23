@@ -5,6 +5,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
@@ -43,6 +44,30 @@ public class NewNoteActivity extends AppCompatActivity {
             } finally {
                 popupMenu.show();
             }
+
+            popupMenu.setOnMenuItemClickListener(menuItem -> {
+                /* Don't ask why it's not a switch statement, it's just not. */
+                if (menuItem.getItemId() == R.id.item1a) {
+                    Toast.makeText(getApplicationContext(), "Take Photo/Video", Toast.LENGTH_SHORT).show();
+                    return true;
+                } else if (menuItem.getItemId() == R.id.item1b) {
+                    Toast.makeText(getApplicationContext(), "Add Photo/Video From Library", Toast.LENGTH_SHORT).show();
+                    return true;
+                } else if (menuItem.getItemId() == R.id.item2) {
+                    Toast.makeText(getApplicationContext(), "Add Voice Note", Toast.LENGTH_SHORT).show();
+                    return true;
+                } else if (menuItem.getItemId() == R.id.item3) {
+                    Toast.makeText(getApplicationContext(), "Insert", Toast.LENGTH_SHORT).show();
+                    return true;
+                } else if (menuItem.getItemId() == R.id.item4) {
+                    Toast.makeText(getApplicationContext(), "Save Note", Toast.LENGTH_SHORT).show();
+                    return true;
+                } else if (menuItem.getItemId() == R.id.item5) {
+                    Toast.makeText(getApplicationContext(), "Add Template", Toast.LENGTH_SHORT).show();
+                    return true;
+                }
+                return true;
+            });
         });
     }
 
