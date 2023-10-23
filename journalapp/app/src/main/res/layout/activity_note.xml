@@ -83,4 +83,3 @@
         android:hint="Type here..."
         android:padding="10dp" />
 </RelativeLayout>
-

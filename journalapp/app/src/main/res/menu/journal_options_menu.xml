@@ -3,15 +3,19 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item android:id="@+id/item1"
-        android:title="Option Item 1"
-        app:showAsAction="never"/>
+        android:title="Add Image/Video"
+        app:showAsAction="never"
+        android:icon="@drawable/image_icon"/>
 
     <item android:id="@+id/item2"
-        android:title="Option Item 2"
-        app:showAsAction="never"/>
+        android:title="Add Voice Note"
+        app:showAsAction="never"
+        android:icon="@drawable/voice"/>
 
     <item android:id="@+id/item3"
-        android:title="Option Item 3"
+        android:title="Insert"
         app:showAsAction="never"/>
+
+
 
 </menu>
