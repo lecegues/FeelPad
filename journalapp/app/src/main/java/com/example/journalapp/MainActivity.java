@@ -5,17 +5,25 @@ import android.os.Bundle;
 import android.widget.ImageButton;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.journalapp.note.NoteViewModel;
 
+/**
+ * Main activity starts as the entry point for the app
+ */
 public class MainActivity extends AppCompatActivity {
 
     private NoteListAdapter noteListAdapter;
 
 
+    /**
+     * onCreate is called when any instance or activity is created
+     * @param savedInstanceState Bundle containing the saved state of the activity
+     */
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -50,6 +58,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    /**
+     * Sets up an observer to watch for changes in the list of notes and updates the UI accordingly
+     */
     private void createNoteObserver() {
         NoteViewModel noteViewModel = new ViewModelProvider(this).get(NoteViewModel.class);
         noteViewModel.getAllNotes().observe(this, notes -> {
@@ -57,6 +68,10 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Initializes RecyclerView to display the list of notes
+     * RecyclerView: display a scrollable list of items with item animations, decorations, and touch handling
+     */
     private void setNoteRecyclerView() {
         RecyclerView noteRecycleView = findViewById(R.id.noteListView);
         noteListAdapter = new NoteListAdapter(new NoteListAdapter.NoteDiff());
@@ -64,6 +79,10 @@ public class MainActivity extends AppCompatActivity {
         noteRecycleView.setLayoutManager(new LinearLayoutManager(this));
     }
 
+    /**
+     * Called when activity is resumed from pause state.
+     * Displays latest notes in the Note RecyclerView
+     */
     @Override
     protected void onResume() {
         super.onResume();
