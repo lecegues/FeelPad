@@ -33,11 +33,9 @@ android {
 
 dependencies {
     val roomVersion = "2.5.2"
-
-    // Core room library
     implementation("androidx.room:room-runtime:$roomVersion")
-    // Annotation processor for Room
     annotationProcessor("androidx.room:room-compiler:$roomVersion")
+    implementation("io.reactivex.rxjava3:rxjava:3.1.8")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.9.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")

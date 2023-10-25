@@ -28,6 +28,7 @@ public abstract class NoteDatabase extends RoomDatabase {
 
     /**
      * Retrieves an instance of the NoteDatabase / creates it if it does not exist
+     *
      * @param context application context
      * @return an instance of NoteDatabase
      */

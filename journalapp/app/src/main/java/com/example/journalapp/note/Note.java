@@ -1,55 +1,67 @@
 package com.example.journalapp.note;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
-/**
- * An entity class used to create a Room database table
- * Represents a 'note' entity in the table
- */
+import java.util.Objects;
+import java.util.UUID;
+
 @Entity(tableName = "note_table")
 public class Note {
-    @PrimaryKey(autoGenerate = true)
+
+    @PrimaryKey
+    @NonNull
     @ColumnInfo(name = "id")
-    private int id; // unique identifier for the node
+    private String id;
+
     @ColumnInfo(name = "title")
-    private String title; // title of the note
+    private String title;
+
     @ColumnInfo(name = "description")
-    private String description; // content description of the note
+    private String description;
+
     @ColumnInfo(name = "create_date")
-    private String createDate; // date when note was created
+    private String createdDate;
 
     /**
      * Constructor to create a new Note instance
-     * @param title String representing title of the note
+     *
+     * @param title       String representing title of the note
      * @param description String representing the description of the note
-     * @param createDate String representating when the note was created
+     * @param createdDate String representing when the note was created
      */
-    public Note(String title, String description, String createDate) {
+    public Note(String title, String description, String createdDate) {
+        this.id = UUID.randomUUID().toString();
         this.title = title;
         this.description = description;
-        this.createDate = createDate;
+        this.createdDate = createdDate;
     }
 
     /**
      * Getter for unique ID of a note
+     *
      * @return integer ID of a note
      */
-    public int getId() {
+    @NonNull
+    public String getId() {
         return id;
     }
 
     /**
      * Setter for unique ID of a note
+     *
      * @param id the ID to set
      */
-    public void setId(int id) {
+    public void setId(@NonNull String id) {
         this.id = id;
     }
 
     /**
      * Getter for title of a note
+     *
      * @return String title of a note
      */
     public String getTitle() {
@@ -58,14 +70,16 @@ public class Note {
 
     /**
      * Setter for title of a note
+     *
      * @param title Title to set
      */
-    public void setTitle(String title) {
+    public void setTitle(@Nullable String title) {
         this.title = title;
     }
 
     /**
      * Getter for description of the note
+     *
      * @return String description of a note
      */
     public String getDescription() {
@@ -74,25 +88,36 @@ public class Note {
 
     /**
      * Setter for description of a note
+     *
      * @param description String description to set
      */
-    public void setDescription(String description) {
+    public void setDescription(@Nullable String description) {
         this.description = description;
     }
 
     /**
      * Getter for the date the note was created
+     *
      * @return String creation date of the note
      */
-    public String getCreateDate() {
-        return createDate;
+    public String getCreatedDate() {
+        return createdDate;
     }
 
     /**
      * Setter to change the date when note was created
-     * @param createDate
+     *
+     * @param createDate The date that the note was created
      */
-    public void setCreateDate(String createDate) {
-        this.createDate = createDate;
+    public void setCreatedDate(String createDate) {
+        this.createdDate = createDate;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Note note = (Note) o;
+        return id.equals(note.id) && Objects.equals(title, note.title) && Objects.equals(description, note.description) && Objects.equals(createdDate, note.createdDate);
     }
 }

@@ -13,7 +13,7 @@ import com.example.journalapp.R;
 /**
  * ViewHolder class for displaying individual notes inside a RecyclerView (preview)
  * One ViewHolder is created for each item that can be displayed and is reused, each time
- *      calling a Binding function.
+ * calling a Binding function.
  */
 public class NoteViewHolder extends RecyclerView.ViewHolder {
 
@@ -22,6 +22,7 @@ public class NoteViewHolder extends RecyclerView.ViewHolder {
 
     /**
      * Constructor for NoteViewHolder
+     *
      * @param itemView View representing each Note item in the RecyclerView
      */
     public NoteViewHolder(@NonNull View itemView) {
@@ -32,7 +33,8 @@ public class NoteViewHolder extends RecyclerView.ViewHolder {
 
     /**
      * Binds data to the ViewHolder
-     * @param title title of the note to display
+     *
+     * @param title       title of the note to display
      * @param description description of the note to display
      */
     public void bind(String title, String description) {

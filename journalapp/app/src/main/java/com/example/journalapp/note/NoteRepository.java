@@ -15,11 +15,12 @@ import java.util.List;
  */
 public class NoteRepository {
 
-    private final NoteDao noteDao; // Database Access API to make it easier for database-repository interaction
-    private final LiveData<List<Note>> allNotes;
+    private static NoteRepository instance;
+    private final NoteDao noteDao;
 
     /**
      * Constructor for creating a new NoteRepository
+     *
      * @param application Application context
      */
     public NoteRepository(Application application) {
@@ -27,24 +28,64 @@ public class NoteRepository {
 
         // Initialize the variables
         noteDao = noteDatabase.noteDao();
-        allNotes = noteDao.getAllNotes();
+    }
+
+    /**
+     * Get singleton instance of NoteRepository
+     *
+     * @param application The application.
+     * @return A synchronized instance of the NoteRepository
+     */
+    public static synchronized NoteRepository getInstance(Application application) {
+        if (instance == null) {
+            instance = new NoteRepository(application);
+        }
+        return instance;
     }
 
     /**
      * Inserts a note into the database
+     *
      * @param note Note object to be inserted
      */
     public void insertNote(Note note) {
-        NoteDatabase.databaseWriteExecutor.execute(() -> {
-            noteDao.insertNote(note);
-        });
+        NoteDatabase.databaseWriteExecutor.execute(() -> noteDao.insertNote(note));
     }
 
     /**
-     * Retrieve all notes using LiveData list of notes
+     * Update note title
+     *
+     * @param note The Note to be updated
+     */
+    public void updateNoteTitle(Note note) {
+        NoteDatabase.databaseWriteExecutor.execute(() -> noteDao.updateNoteTitle(note.getTitle(), note.getId()));
+    }
+
+    /**
+     * Update note description
+     *
+     * @param note The Note to be updated
+     */
+    public void updateNoteDescription(Note note) {
+        NoteDatabase.databaseWriteExecutor.execute(() -> noteDao.updateNoteDescription(note.getDescription(), note.getId()));
+    }
+
+    /**
+     * Retrieve all notes using LiveData list of notes. Live
+     * data list of notes descending order by date.
+     *
      * @return LiveData object containing a list of notes
      */
-    public LiveData<List<Note>> getAllNotes() {
-        return allNotes;
+    public LiveData<List<Note>> getAllNotesOrderedByCreatedDateDesc() {
+        return noteDao.getAllNotesOrderByCreatedDateDesc();
+    }
+
+    /**
+     * Delete a note from the database
+     *
+     * @param note The note to be removed
+     */
+    public void deleteNote(Note note) {
+        NoteDatabase.databaseWriteExecutor.execute(() -> noteDao.deleteNote(note));
     }
 }
