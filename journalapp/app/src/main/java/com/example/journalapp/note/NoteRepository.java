@@ -78,6 +78,11 @@ public class NoteRepository {
         return noteDao.getAllNotesOrderByCreatedDateDesc();
     }
 
+    /**
+     * Delete a note from the database
+     *
+     * @param note The note to be removed
+     */
     public void deleteNote(Note note) {
         NoteDatabase.databaseWriteExecutor.execute(() -> noteDao.deleteNote(note));
     }
