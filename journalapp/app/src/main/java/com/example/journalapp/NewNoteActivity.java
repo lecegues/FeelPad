@@ -12,7 +12,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.LiveData;
 
 import com.example.journalapp.note.Note;
 import com.example.journalapp.note.NoteRepository;
@@ -215,34 +214,29 @@ public class NewNoteActivity extends AppCompatActivity {
     private void setExistingNote(String note_id) {
 
         // use executorService for separate background thread instead of using UI thread
-        // Note: new Runnable tells executorService to execute code inside the run() method
-        executorService.execute(new Runnable() {
-            @Override
-            public void run(){
+        // Note: not seen but execute has a 'Runnable' parameter that tells executorService
+        //       to execute code inside the run() method; however we are using a lambda function
+        executorService.execute( () -> {
 
-                // retrieve note using id database operations
-                try { note = noteRepository.getNoteById(note_id); }
+            // retrieve note using id database operations
+            try { note = noteRepository.getNoteById(note_id); }
 
-                // if invalid note_id, then just close the note
-                // @TODO improper handle of error
-                catch (Exception e){ finish(); }
+            // if invalid note_id, then just close the note
+            // @TODO improper handle of error
+            catch (Exception e){ finish(); }
 
 
-                // Use UI Thread to update UI
-                runOnUiThread(new Runnable(){
+            // Use UI Thread to update UI
+            runOnUiThread( () -> {
 
-                    @Override
-                    public void run(){
-                        // Populate UI with existing note
-                        dateTextView.setText(note.getCreatedDate());
-                        titleEditText.setText(note.getTitle());
-                        descriptionEditText.setText(note.getDescription());
-
-                    }
+                // Populate UI with existing note
+                dateTextView.setText(note.getCreatedDate());
+                titleEditText.setText(note.getTitle());
+                descriptionEditText.setText(note.getDescription());
 
                 });
-            }
-        });
+
+            });
     }
 
     /**
