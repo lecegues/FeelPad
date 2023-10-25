@@ -56,49 +56,65 @@ public class NewNoteActivity extends AppCompatActivity {
         dateTextView = findViewById(R.id.dateTextView);
         EditText titleEditText = findViewById(R.id.titleEditText);
         EditText descriptionEditText = findViewById(R.id.descriptionEditText);
-        noteRepository = NoteRepository.getInstance(getApplication());
+
+        noteRepository = NoteRepository.getInstance(getApplication()); // initialize the note repo
+
+        /**
+         * create an Observable to monitor changes in the title using debouncing
+         * Process: Action is taken --> emitter is notified --> emitter notifies observable
+         *          observable notifies subscribers --> subscribers take action
+         */
         Observable<String> titleChangedObservable = Observable.create(emitter -> titleEditText.addTextChangedListener(new TextWatcher() {
 
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
+                // actions before text is changed
             }
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                emitter.onNext(charSequence.toString());
+                emitter.onNext(charSequence.toString()); // emitter is notified of an update
             }
 
             @Override
             public void afterTextChanged(Editable editable) {
+                // actions after text is changed
             }
         }));
 
+        // Sets debounce time (ms) for title changes
         /* 5 seconds */
         int SAVE_DELAY = 1000;
         Observable<String> titleObservable = titleChangedObservable
                 .debounce(SAVE_DELAY, TimeUnit.MILLISECONDS);
 
+        /**
+         * Creates an Observable to monitor changes in the description using debouncing
+         */
         Observable<String> descriptionChangedObservable = Observable.create(emitter -> descriptionEditText.addTextChangedListener(new TextWatcher() {
 
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
+                // actions before text is changed
             }
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                emitter.onNext(charSequence.toString());
+                emitter.onNext(charSequence.toString()); // emitter notified of update
             }
 
             @Override
             public void afterTextChanged(Editable editable) {
+                // actions after text is changed
             }
         }));
 
+        // Sets debounce time (ms) for description
+        /* 5 seconds */
         Observable<String> descriptionObservable = descriptionChangedObservable
                 .debounce(SAVE_DELAY, TimeUnit.MILLISECONDS);
 
+        // Subscribe to observables to trigger a save to database
         compositeDisposable.addAll(
                 descriptionObservable.subscribe(this::saveNoteDescription),
                 titleObservable.subscribe(this::saveNoteTitle));
@@ -163,6 +179,10 @@ public class NewNoteActivity extends AppCompatActivity {
         noteRepository.insertNote(note);
     }
 
+    /**
+     * Save note title locally and to database
+     * @param title The note's title
+     */
     public void saveNoteTitle(String title) {
         Log.d("TextWatcher", "Updating the title: " + title);
         note.setTitle(title);

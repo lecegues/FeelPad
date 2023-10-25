@@ -18,7 +18,6 @@ public class MainActivity extends AppCompatActivity {
 
     private NoteListAdapter noteListAdapter;
 
-
     /**
      * onCreate is called when any instance or activity is created
      *
@@ -28,11 +27,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        setNoteRecyclerView();
-        createNoteObserver();
-        initMainMenu();
+        setNoteRecyclerView(); // initialize RecyclerView (display notes)
+        createNoteObserver(); // observer to watch for changes in list of notes
+        initMainMenu(); // initialize main menu buttons
     }
 
+    /**
+     * Initializes main menu buttons and sets their click listeners
+     */
     private void initMainMenu() {
         ImageButton arrowButton = findViewById(R.id.arrowdown);
         ImageButton combinePdfButton = findViewById(R.id.combinePDF);
@@ -59,7 +61,6 @@ public class MainActivity extends AppCompatActivity {
             // Handle the click for the template button here
         });
     }
-
 
     /**
      * Sets up an observer to watch for changes in the list of notes and updates the UI accordingly
