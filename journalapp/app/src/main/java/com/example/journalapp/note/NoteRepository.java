@@ -80,6 +80,10 @@ public class NoteRepository {
         return noteDao.getAllNotesOrderByCreatedDateDesc();
     }
 
+    public Note getNoteById(String note_id){
+        return noteDao.getNoteById(note_id);
+    }
+
     /**
      * Delete a note from the database
      *

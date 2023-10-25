@@ -44,6 +44,15 @@ public interface NoteDao {
     LiveData<List<Note>> getNotesWithTitle(String providedTitle);
 
     /**
+     * Retrieves a single note given the id
+     * @param note_id String id to search for a note with
+     * @return a LiveData Note object
+     */
+    @Query("SELECT * FROM note_table WHERE id = :note_id")
+    Note getNoteById(String note_id);
+
+
+    /**
      * Inserts a new note into the database
      *
      * @param note Note to insert

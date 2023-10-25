@@ -9,6 +9,10 @@ import androidx.room.PrimaryKey;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * An entity class used to create a Room database table
+ * Represents a 'note' entity in the table
+ */
 @Entity(tableName = "note_table")
 public class Note {
 
@@ -113,6 +117,11 @@ public class Note {
         this.createdDate = createDate;
     }
 
+    /**
+     * Indicates if two notes are equal
+     * @param o The object to compare with this instance
+     * @return true if objects are equal, false otherwise
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
