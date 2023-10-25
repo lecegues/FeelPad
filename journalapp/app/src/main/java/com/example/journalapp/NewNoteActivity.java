@@ -1,6 +1,9 @@
 package com.example.journalapp;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.PopupMenu;
@@ -8,20 +11,23 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.ViewModelProvider;
 
 import com.example.journalapp.note.Note;
-import com.example.journalapp.note.NoteViewModel;
+import com.example.journalapp.note.NoteRepository;
 import com.example.journalapp.utils.DateUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
+
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
 
 public class NewNoteActivity extends AppCompatActivity {
-    private EditText titleEditText, descriptionEditText;
     private TextView dateTextView;
-    private NoteViewModel noteViewModel;
-    private Date currentDate;
+    private NoteRepository noteRepository;
+    private Note note;
+    private final CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     @Override
     protected void onCreate(Bundle saveInstanceState) {
@@ -29,7 +35,59 @@ public class NewNoteActivity extends AppCompatActivity {
         setContentView(R.layout.activity_note);
         initWidgets();
         initOptionsMenu();
-        setCurrentDate();
+        setNote();
+    }
+
+    private void initWidgets() {
+        dateTextView = findViewById(R.id.dateTextView);
+        EditText titleEditText = findViewById(R.id.titleEditText);
+        EditText descriptionEditText = findViewById(R.id.descriptionEditText);
+        noteRepository = NoteRepository.getInstance(getApplication());
+        Observable<String> titleChangedObservable = Observable.create(emitter -> titleEditText.addTextChangedListener(new TextWatcher() {
+
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                emitter.onNext(charSequence.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+            }
+        }));
+
+        /* 5 seconds */
+        int SAVE_DELAY = 1000;
+        Observable<String> titleObservable = titleChangedObservable
+                .debounce(SAVE_DELAY, TimeUnit.MILLISECONDS);
+
+        Observable<String> descriptionChangedObservable = Observable.create(emitter -> descriptionEditText.addTextChangedListener(new TextWatcher() {
+
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                emitter.onNext(charSequence.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+            }
+        }));
+
+        Observable<String> descriptionObservable = descriptionChangedObservable
+                .debounce(SAVE_DELAY, TimeUnit.MILLISECONDS);
+
+        compositeDisposable.addAll(
+                descriptionObservable.subscribe(this::saveNoteDescription),
+                titleObservable.subscribe(this::saveNoteTitle));
     }
 
     private void initOptionsMenu() {
@@ -71,27 +129,32 @@ public class NewNoteActivity extends AppCompatActivity {
         });
     }
 
-    private void initWidgets() {
-        dateTextView = findViewById(R.id.dateTextView);
-        titleEditText = findViewById(R.id.titleEditText);
-        descriptionEditText = findViewById(R.id.descriptionEditText);
-        noteViewModel = new ViewModelProvider(this).get(NoteViewModel.class);
+    private void setNote() {
+        Date currentDate = new Date();
+        String dateString = DateUtils.DateToString(currentDate);
+        note = new Note("", "", currentDate.toString());
+        dateTextView.setText(dateString.split(" ")[0]);
+        noteRepository.insertNote(note);
     }
 
-    private void setCurrentDate() {
-        // TODO: Possibly allow the user to update the date
-        currentDate = new Date();
-        dateTextView.setText(currentDate.toString());
+    public void saveNoteTitle(String title) {
+        Log.d("TextWatcher", "Updating the title: " + title);
+        note.setTitle(title);
+        noteRepository.updateNoteTitle(note);
     }
 
-    public void saveNote(View view) {
-        String title = String.valueOf(titleEditText.getText());
-        String desc = String.valueOf(descriptionEditText.getText());
-        if (title.isEmpty() || desc.isEmpty()) {
-            return;
+    public void saveNoteDescription(String description) {
+        Log.d("TextWatcher", "Updating the description: " + description);
+        note.setDescription(description);
+        noteRepository.updateNoteDescription(note);
+    }
+
+    public void exitNote(View view) {
+        String description = note.getDescription();
+        String title = note.getTitle();
+        if (description.isEmpty() && title.isEmpty()) {
+            noteRepository.deleteNote(note);
         }
-        Note newNote = new Note(title, desc, DateUtils.DateToString(currentDate));
-        noteViewModel.createNote(newNote);
         finish();
     }
 }

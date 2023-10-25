@@ -11,22 +11,38 @@ import java.util.List;
 
 public class NoteRepository {
 
+    private static NoteRepository instance;
     private final NoteDao noteDao;
-    private final LiveData<List<Note>> allNotes;
 
     public NoteRepository(Application application) {
         NoteDatabase noteDatabase = NoteDatabase.getNoteDatabase(application);
         noteDao = noteDatabase.noteDao();
-        allNotes = noteDao.getAllNotes();
+    }
+
+    public static synchronized NoteRepository getInstance(Application application) {
+        if (instance == null) {
+            instance = new NoteRepository(application);
+        }
+        return instance;
     }
 
     public void insertNote(Note note) {
-        NoteDatabase.databaseWriteExecutor.execute(() -> {
-            noteDao.insertNote(note);
-        });
+        NoteDatabase.databaseWriteExecutor.execute(() -> noteDao.insertNote(note));
     }
 
-    public LiveData<List<Note>> getAllNotes() {
-        return allNotes;
+    public void updateNoteTitle(Note note) {
+        NoteDatabase.databaseWriteExecutor.execute(() -> noteDao.updateNoteTitle(note.getTitle(), note.getId()));
+    }
+
+    public void updateNoteDescription(Note note) {
+        NoteDatabase.databaseWriteExecutor.execute(() -> noteDao.updateNoteDescription(note.getDescription(), note.getId()));
+    }
+
+    public LiveData<List<Note>> getAllNotesOrderedByCreatedDateDesc() {
+        return noteDao.getAllNotesOrderByCreatedDateDesc();
+    }
+
+    public void deleteNote(Note note) {
+        NoteDatabase.databaseWriteExecutor.execute(() -> noteDao.deleteNote(note));
     }
 }
