@@ -1,7 +1,9 @@
 package com.example.journalapp;
 
 
+import android.content.Intent;
 import android.util.Log;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -56,6 +58,26 @@ public class NoteListAdapter extends ListAdapter<Note, NoteViewHolder> {
         Log.d("NoteListAdapter", "onBindViewHolder title: " + title);
         Log.d("NoteListAdapter", "onBindViewHolder desc: " + desc);
         holder.bind(title, desc);
+
+
+        /**
+         * Click listener for each entry inside RecyclerView to link to a note
+         */
+        holder.itemView.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View v){
+
+                // Intent to go to the note editing page
+                Intent intent = new Intent(v.getContext(), NewNoteActivity.class);
+
+                // If note has an ID, its existing, otherwise, it is a new note
+                intent.putExtra("note_id", current.getId());
+                v.getContext().startActivity(intent);
+
+            }
+
+        });
     }
 
     /**

@@ -51,6 +51,8 @@ public class MainActivity extends AppCompatActivity {
         addNoteButton.setOnClickListener(v -> {
             // Handle the click for the add note button here
             Intent intent = new Intent(MainActivity.this, NewNoteActivity.class);
+
+            // intent has no note_id, so it is classified as a new note
             startActivity(intent);
         });
         searchButton.setOnClickListener(v -> {
