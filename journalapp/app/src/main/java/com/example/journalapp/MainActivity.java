@@ -27,10 +27,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         setNoteRecyclerView();
         createNoteObserver();
+        initMainMenu();
+    }
 
-
+    private void initMainMenu() {
         ImageButton arrowButton = findViewById(R.id.arrowdown);
         ImageButton combinePdfButton = findViewById(R.id.combinePDF);
         ImageButton addNoteButton = findViewById(R.id.addNote);
@@ -63,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void createNoteObserver() {
         NoteViewModel noteViewModel = new ViewModelProvider(this).get(NoteViewModel.class);
-        noteViewModel.getAllNotes().observe(this, notes -> {
+        noteViewModel.getAllNotesOrderedByCreateDateDesc().observe(this, notes -> {
             noteListAdapter.submitList(notes);
         });
     }
@@ -86,8 +89,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        setNoteRecyclerView();
-        setNoteRecyclerView();
+        createNoteObserver();
     }
 
 }

@@ -16,7 +16,7 @@
             android:layout_width="41dp"
             android:layout_height="45dp"
             android:backgroundTint="@color/white"
-            android:onClick="saveNote"
+            android:onClick="exitNote"
             android:scaleType="fitCenter"
             android:src="@drawable/back" />
 
@@ -28,6 +28,7 @@
             android:layout_marginTop="5dp"
             android:layout_marginRight="57dp"
             android:layout_toRightOf="@id/backArrow"
+            android:maxLength="50"
             android:background="@null"
             android:gravity="center"
             android:hint="Enter Topic"

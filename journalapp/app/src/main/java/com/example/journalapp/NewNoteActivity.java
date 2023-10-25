@@ -1,6 +1,9 @@
 package com.example.journalapp;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.PopupMenu;
@@ -8,27 +11,31 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.ViewModelProvider;
 
 import com.example.journalapp.note.Note;
-import com.example.journalapp.note.NoteViewModel;
+import com.example.journalapp.note.NoteRepository;
 import com.example.journalapp.utils.DateUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
+
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
 
 /**
  * Activity representing a single note page
  * Contains creation and saving of a note
  */
 public class NewNoteActivity extends AppCompatActivity {
-    private EditText titleEditText, descriptionEditText;
     private TextView dateTextView;
-    private NoteViewModel noteViewModel;
-    private Date currentDate;
+    private NoteRepository noteRepository;
+    private Note note;
+    private final CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     /**
      * Called when activity is first created
+     *
      * @param saveInstanceState Bundle containing the saved state of the activity
      */
     @Override
@@ -39,7 +46,62 @@ public class NewNoteActivity extends AppCompatActivity {
         // Initialize UI Widgets & set current date
         initWidgets();
         initOptionsMenu();
-        setCurrentDate();
+        setNote();
+    }
+
+    /**
+     * Initializes UI widgets and the ViewModel
+     */
+    private void initWidgets() {
+        dateTextView = findViewById(R.id.dateTextView);
+        EditText titleEditText = findViewById(R.id.titleEditText);
+        EditText descriptionEditText = findViewById(R.id.descriptionEditText);
+        noteRepository = NoteRepository.getInstance(getApplication());
+        Observable<String> titleChangedObservable = Observable.create(emitter -> titleEditText.addTextChangedListener(new TextWatcher() {
+
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                emitter.onNext(charSequence.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+            }
+        }));
+
+        /* 5 seconds */
+        int SAVE_DELAY = 1000;
+        Observable<String> titleObservable = titleChangedObservable
+                .debounce(SAVE_DELAY, TimeUnit.MILLISECONDS);
+
+        Observable<String> descriptionChangedObservable = Observable.create(emitter -> descriptionEditText.addTextChangedListener(new TextWatcher() {
+
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                emitter.onNext(charSequence.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+            }
+        }));
+
+        Observable<String> descriptionObservable = descriptionChangedObservable
+                .debounce(SAVE_DELAY, TimeUnit.MILLISECONDS);
+
+        compositeDisposable.addAll(
+                descriptionObservable.subscribe(this::saveNoteDescription),
+                titleObservable.subscribe(this::saveNoteTitle));
     }
 
     /**
@@ -90,45 +152,46 @@ public class NewNoteActivity extends AppCompatActivity {
     }
 
     /**
-     * Initializes UI widgets and the ViewModel
+     * Initialize a basic note with a date and store it
+     * in the database
      */
-    private void initWidgets() {
-        dateTextView = findViewById(R.id.dateTextView);
-        titleEditText = findViewById(R.id.titleEditText);
-        descriptionEditText = findViewById(R.id.descriptionEditText);
+    private void setNote() {
+        Date currentDate = new Date();
+        String dateString = DateUtils.DateToString(currentDate);
+        note = new Note("", "", currentDate.toString());
+        dateTextView.setText(dateString.split(" ")[0]);
+        noteRepository.insertNote(note);
+    }
 
-        // Creates a new instance of ViewModelProvider and associates it and a NoteViewModel with the current class
-        noteViewModel = new ViewModelProvider(this).get(NoteViewModel.class);
+    public void saveNoteTitle(String title) {
+        Log.d("TextWatcher", "Updating the title: " + title);
+        note.setTitle(title);
+        noteRepository.updateNoteTitle(note);
     }
 
     /**
-     * Sets the current date for the new note
+     * Save note description locally and to the database.
+     *
+     * @param description The journals description
      */
-    private void setCurrentDate() {
-        // TODO: Possibly allow the user to update the date
-        currentDate = new Date();
-        dateTextView.setText(currentDate.toString());
+    public void saveNoteDescription(String description) {
+        Log.d("TextWatcher", "Updating the description: " + description);
+        note.setDescription(description);
+        noteRepository.updateNoteDescription(note);
     }
 
     /**
-     * @TODO should be automatic saving.
-     * Save the new note when the "Save" button is clicked
+     * Remove the note from the database if there is, no
+     * title or description to be saved
+     *
      * @param view The button view that triggers the save operation
      */
-    public void saveNote(View view) {
-        String title = String.valueOf(titleEditText.getText());
-        String desc = String.valueOf(descriptionEditText.getText());
-
-        // to return nothing if fields are empty
-        if (title.isEmpty() || desc.isEmpty()) {
-            return;
+    public void exitNote(View view) {
+        String description = note.getDescription();
+        String title = note.getTitle();
+        if (description.isEmpty() && title.isEmpty()) {
+            noteRepository.deleteNote(note);
         }
-
-        // create a new note object and save using the ViewModel
-        Note newNote = new Note(title, desc, DateUtils.DateToString(currentDate));
-        noteViewModel.createNote(newNote);
-
-        // Finish the activity (close it) and return to the previous screen
         finish();
     }
 }

@@ -1,6 +1,7 @@
 package com.example.journalapp;
 
 
+import android.util.Log;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -52,6 +53,8 @@ public class NoteListAdapter extends ListAdapter<Note, NoteViewHolder> {
         Note current = getItem(position);
         String title = current.getTitle();
         String desc = current.getDescription();
+        Log.d("NoteListAdapter", "onBindViewHolder title: " + title);
+        Log.d("NoteListAdapter", "onBindViewHolder desc: " + desc);
         holder.bind(title, desc);
     }
 
@@ -68,7 +71,7 @@ public class NoteListAdapter extends ListAdapter<Note, NoteViewHolder> {
          */
         @Override
         public boolean areItemsTheSame(@NonNull Note oldItem, @NonNull Note newItem) {
-            return oldItem == newItem;
+            return oldItem.getId() == newItem.getId();
         }
 
         /**
@@ -79,7 +82,7 @@ public class NoteListAdapter extends ListAdapter<Note, NoteViewHolder> {
          */
         @Override
         public boolean areContentsTheSame(@NonNull Note oldItem, @NonNull Note newItem) {
-            return oldItem.getId() == newItem.getId();
+            return oldItem.equals(newItem);
         }
     }
 
