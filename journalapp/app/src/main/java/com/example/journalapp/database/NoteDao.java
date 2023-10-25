@@ -19,6 +19,7 @@ public interface NoteDao {
 
     /**
      * Retrieves all notes from the database
+     *
      * @return LiveData list of all notes
      */
     @Query("SELECT * FROM note_table")
@@ -35,6 +36,7 @@ public interface NoteDao {
 
     /**
      * Retrieves notes with a specific title from the database
+     *
      * @param providedTitle String Title to search for
      * @return a LiveData list of notes with the specified title
      */
@@ -43,6 +45,7 @@ public interface NoteDao {
 
     /**
      * Inserts a new note into the database
+     *
      * @param note Note to insert
      */
     @Insert(onConflict = OnConflictStrategy.IGNORE)
@@ -51,7 +54,7 @@ public interface NoteDao {
     /**
      * Update the title of note with id
      *
-     * @param noteId The notes id
+     * @param noteId        The notes id
      * @param providedTitle the new title
      */
     @Query("UPDATE note_table SET title = :providedTitle WHERE id = :noteId")
@@ -60,7 +63,7 @@ public interface NoteDao {
     /**
      * Update the description of note with id
      *
-     * @param noteId the notes id
+     * @param noteId              the notes id
      * @param providedDescription The new description
      */
     @Query("UPDATE note_table SET description = :providedDescription WHERE id = :noteId")
@@ -68,6 +71,7 @@ public interface NoteDao {
 
     /**
      * Deletes a note from the database
+     *
      * @param note Note to delete
      */
     @Delete

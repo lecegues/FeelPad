@@ -50,7 +50,7 @@ public class NewNoteActivity extends AppCompatActivity {
     }
 
     /**
-     * Initializes UI widgets and the ViewModel
+     * Initializes UI widgets, ViewModel, and set the edit text watcher with debouncing.
      */
     private void initWidgets() {
         dateTextView = findViewById(R.id.dateTextView);

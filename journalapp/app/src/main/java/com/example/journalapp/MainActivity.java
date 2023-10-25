@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.widget.ImageButton;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -22,6 +21,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * onCreate is called when any instance or activity is created
+     *
      * @param savedInstanceState Bundle containing the saved state of the activity
      */
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,9 +66,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void createNoteObserver() {
         NoteViewModel noteViewModel = new ViewModelProvider(this).get(NoteViewModel.class);
-        noteViewModel.getAllNotesOrderedByCreateDateDesc().observe(this, notes -> {
-            noteListAdapter.submitList(notes);
-        });
+        noteViewModel.getAllNotesOrderedByCreateDateDesc().observe(this, notes -> noteListAdapter.submitList(notes));
     }
 
     /**

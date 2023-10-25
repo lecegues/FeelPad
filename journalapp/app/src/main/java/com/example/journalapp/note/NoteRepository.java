@@ -20,6 +20,7 @@ public class NoteRepository {
 
     /**
      * Constructor for creating a new NoteRepository
+     *
      * @param application Application context
      */
     public NoteRepository(Application application) {
@@ -44,6 +45,7 @@ public class NoteRepository {
 
     /**
      * Inserts a note into the database
+     *
      * @param note Note object to be inserted
      */
     public void insertNote(Note note) {

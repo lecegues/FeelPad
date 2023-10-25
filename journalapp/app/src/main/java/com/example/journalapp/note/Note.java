@@ -31,7 +31,7 @@ public class Note {
      *
      * @param title       String representing title of the note
      * @param description String representing the description of the note
-     * @param createDate  String representating when the note was created
+     * @param createdDate String representing when the note was created
      */
     public Note(String title, String description, String createdDate) {
         this.id = UUID.randomUUID().toString();
@@ -107,7 +107,7 @@ public class Note {
     /**
      * Setter to change the date when note was created
      *
-     * @param createDate
+     * @param createDate The date that the note was created
      */
     public void setCreatedDate(String createDate) {
         this.createdDate = createDate;
@@ -118,6 +118,6 @@ public class Note {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Note note = (Note) o;
-        return id == note.id && Objects.equals(title, note.title) && Objects.equals(description, note.description) && Objects.equals(createdDate, note.createdDate);
+        return id.equals(note.id) && Objects.equals(title, note.title) && Objects.equals(description, note.description) && Objects.equals(createdDate, note.createdDate);
     }
 }

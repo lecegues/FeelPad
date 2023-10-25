@@ -22,6 +22,7 @@ public class DateUtils {
 
     /**
      * Converts a Date object to a String
+     *
      * @param date Date object to be formatted
      * @return String representation representing the date
      */
@@ -31,9 +32,10 @@ public class DateUtils {
 
     /**
      * Converts a String to a Date object
+     *
      * @param string String representation of the date
      * @return Date object parsed from input string
-     *         Null if parsing fails
+     * Null if parsing fails
      */
     public static Date StringToDate(String string) {
         try {
