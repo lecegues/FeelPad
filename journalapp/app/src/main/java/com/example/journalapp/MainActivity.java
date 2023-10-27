@@ -56,7 +56,8 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
         searchButton.setOnClickListener(v -> {
-            // Handle the click for the search button here
+            Intent intent = new Intent(MainActivity.this, SearchActivity.class);
+            startActivity(intent);
         });
 
         templateButton.setOnClickListener(v -> {

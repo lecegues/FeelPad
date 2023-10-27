@@ -35,6 +35,19 @@ public interface NoteDao {
     LiveData<List<Note>> getAllNotesOrderByCreatedDateDesc();
 
     /**
+     * Select a distinct record from the database that contains the provided string in the
+     * title, description, or date.
+     *
+     * @param string The string to search for
+     * @return LiveData list of all notes
+     */
+    @Query("SELECT DISTINCT * FROM note_table " +
+            "WHERE title LIKE '%' || :string || '%' " +
+            "OR description LIKE '%' || :string || '%' " +
+            "OR create_date LIKE '%' || :string || '%'")
+    LiveData<List<Note>> getAllNotesWhereTitleDateDescContains(String string);
+
+    /**
      * Retrieves notes with a specific title from the database
      *
      * @param providedTitle String Title to search for
@@ -45,6 +58,7 @@ public interface NoteDao {
 
     /**
      * Retrieves a single note given the id
+     *
      * @param note_id String id to search for a note with
      * @return a LiveData Note object
      */

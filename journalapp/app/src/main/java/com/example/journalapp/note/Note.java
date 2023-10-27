@@ -119,6 +119,7 @@ public class Note {
 
     /**
      * Indicates if two notes are equal
+     *
      * @param o The object to compare with this instance
      * @return true if objects are equal, false otherwise
      */

@@ -80,7 +80,24 @@ public class NoteRepository {
         return noteDao.getAllNotesOrderByCreatedDateDesc();
     }
 
-    public Note getNoteById(String note_id){
+    /**
+     * Retrieve all note containing the provided string in their title, description, or date,
+     * using LiveData list of notes.
+     *
+     * @param string The string to search for
+     * @return LiveData object containing the list of notes
+     */
+    public LiveData<List<Note>> getAllNoteWhereTitleDateDescContains(String string) {
+        return noteDao.getAllNotesWhereTitleDateDescContains(string);
+    }
+
+    /**
+     * Get a note by id
+     *
+     * @param note_id The note id
+     * @return The note with note id
+     */
+    public Note getNoteById(String note_id) {
         return noteDao.getNoteById(note_id);
     }
 

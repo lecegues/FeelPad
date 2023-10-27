@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/title"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/background"
+    android:orientation="vertical">
+
+    <ImageView
+        android:id="@+id/searchImageView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:layout_marginTop="16dp"
+        android:contentDescription="@string/title_image_view"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/img" />
+
+    <ImageButton
+        android:id="@+id/cancelNoteSearchButton"
+        android:layout_width="41dp"
+        android:layout_height="45dp"
+        android:layout_marginLeft="2dp"
+        android:layout_marginRight="20dp"
+        android:backgroundTint="@color/white"
+        android:contentDescription="@string/cancel_search_button"
+        android:scaleType="fitCenter"
+        android:src="@drawable/back"
+        app:layout_constraintBottom_toTopOf="@id/noteListView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/searchImageView" />
+
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/noteSearchView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:inputType="textShortMessage"
+        android:soundEffectsEnabled="true"
+        app:layout_constraintBottom_toTopOf="@id/noteListView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/cancelNoteSearchButton"
+        app:layout_constraintTop_toBottomOf="@+id/searchImageView" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/noteListView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:divider="@color/dark_gray"
+        android:dividerHeight="3dp"
+        android:padding="@dimen/cardview_default_radius"
+        app:layout_constraintTop_toBottomOf="@id/noteSearchView"
+        tools:listitem="@layout/note_cell" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
