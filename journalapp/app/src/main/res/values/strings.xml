@@ -6,4 +6,9 @@
     <string name="combine_psd_button">combine psd button</string>
     <string name="this_is_a_downward_arrow_button">This is a downward arrow button</string>
     <string name="title_image_view">title image view</string>
+    <string name="cancel">Cancel</string>
+    <string name="cancel_search_button">cancel search button</string>
+    <string name="title">Title</string>
+    <string name="description">Description</string>
+    <string name="line">Line</string>
 </resources>

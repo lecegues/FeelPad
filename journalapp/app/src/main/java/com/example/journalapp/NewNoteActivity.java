@@ -15,7 +15,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.journalapp.note.Note;
 import com.example.journalapp.note.NoteRepository;
-import com.example.journalapp.utils.DateUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
@@ -41,7 +40,7 @@ public class NewNoteActivity extends AppCompatActivity {
     /* ExecutorService-- must be used because database operations can
        take a non-trivial amount of time and block the main UI thread,
        causing an error*/
-    private ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
 
     /**
@@ -61,16 +60,14 @@ public class NewNoteActivity extends AppCompatActivity {
         // Check if the received intent is for a new note or existing note
         Intent intent = getIntent();
 
-        if (intent.hasExtra("note_id")){ // existing note
+        if (intent.hasExtra("note_id")) { // existing note
 
             // retrieve note_id
             String note_id = intent.getStringExtra("note_id");
 
             // retrieve existing note from database using noteId and populate the UI
             setExistingNote(note_id);
-        }
-
-        else{ // new note
+        } else { // new note
             setNewNote();
         }
 
@@ -200,11 +197,9 @@ public class NewNoteActivity extends AppCompatActivity {
      */
     private void setNewNote() {
         Date currentDate = new Date();
-        String dateString = DateUtils.DateToString(currentDate);
         note = new Note("", "", currentDate.toString());
-        dateTextView.setText(dateString.split(" ")[0]);
+        dateTextView.setText(note.getCreatedDate());
         noteRepository.insertNote(note);
-
     }
 
     /**
@@ -216,31 +211,33 @@ public class NewNoteActivity extends AppCompatActivity {
         // use executorService for separate background thread instead of using UI thread
         // Note: not seen but execute has a 'Runnable' parameter that tells executorService
         //       to execute code inside the run() method; however we are using a lambda function
-        executorService.execute( () -> {
+        executorService.execute(() -> {
 
             // retrieve note using id database operations
-            try { note = noteRepository.getNoteById(note_id); }
+            try {
+                note = noteRepository.getNoteById(note_id);
+            }
 
             // if invalid note_id, then just close the note
             // @TODO improper handle of error
-            catch (Exception e){ finish(); }
+            catch (Exception e) {
+                finish();
+            }
 
 
             // Use UI Thread to update UI
-            runOnUiThread( () -> {
-
+            runOnUiThread(() -> {
                 // Populate UI with existing note
                 dateTextView.setText(note.getCreatedDate());
                 titleEditText.setText(note.getTitle());
                 descriptionEditText.setText(note.getDescription());
-
-                });
-
             });
+        });
     }
 
     /**
      * Save note title locally and to database
+     *
      * @param title The note's title
      */
     public void saveNoteTitle(String title) {

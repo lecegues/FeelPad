@@ -33,4 +33,15 @@ public class NoteViewModel extends AndroidViewModel {
     public LiveData<List<Note>> getAllNotesOrderedByCreateDateDesc() {
         return noteRepository.getAllNotesOrderedByCreatedDateDesc();
     }
+
+    /**
+     * Retrieve LiveData containing a list of notes where title, description, or date, contains
+     * the provided string.
+     *
+     * @param string The provided string
+     * @return LiveData containing all notes
+     */
+    public LiveData<List<Note>> getAllNoteWhereTitleDateDescContains(String string) {
+        return noteRepository.getAllNoteWhereTitleDateDescContains(string);
+    }
 }
