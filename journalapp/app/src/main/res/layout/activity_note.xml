@@ -48,6 +48,8 @@
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"/>
 
+
+
                 <ImageButton
                     android:id="@+id/infoMenu"
                     android:layout_width="49dp"
@@ -90,7 +92,7 @@
 
             <TextView
                 android:id="@+id/dateTextView"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12sp"
                 android:layout_marginTop="15sp"
@@ -99,9 +101,25 @@
                 android:paddingTop="8sp"
                 android:paddingBottom="8sp"
                 android:textColor="@color/gray"
+                app:layout_constraintStart_toEndOf="@id/dateIndicator"
                 app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
 
                 />
+
+            <View
+                android:id="@+id/dateIndicator"
+                android:layout_width="5sp"
+                android:layout_height="0dp"
+                android:layout_marginStart="12sp"
+                android:background="@drawable/subtitle_indicator"
+                app:layout_constraintBottom_toBottomOf="@id/dateTextView"
+                app:layout_constraintTop_toTopOf="@id/dateTextView"
+                app:layout_constraintStart_toStartOf="parent"
+
+
+                />
+
 
             <EditText
                 android:id="@+id/descriptionEditText"
