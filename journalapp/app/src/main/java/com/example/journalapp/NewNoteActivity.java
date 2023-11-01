@@ -4,15 +4,18 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.Html;
 import android.text.Spannable;
+import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextWatcher;
+import android.text.style.ImageSpan;
 import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.View;
@@ -33,6 +36,8 @@ import androidx.core.content.ContextCompat;
 import com.example.journalapp.note.Note;
 import com.example.journalapp.note.NoteRepository;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
 import java.util.concurrent.ExecutorService;
@@ -68,6 +73,13 @@ public class NewNoteActivity extends AppCompatActivity {
     private final ActivityResultLauncher<String> mGetContent =
             registerForActivityResult( new ActivityResultContracts.GetContent(), uri -> {
                 // Handle returned Uri's
+                try{
+                    Drawable drawable = getDrawableFromUri(uri);
+                    insertImageIntoText(drawable, uri);
+                } catch (IOException e){
+                    e.printStackTrace();
+                    Toast.makeText(NewNoteActivity.this, "Failed to insert image", Toast.LENGTH_SHORT).show();
+                }
 
                 if (uri != null) {
                     // Do nothing
@@ -316,6 +328,58 @@ public class NewNoteActivity extends AppCompatActivity {
         mGetContent.launch("image/*");
     }
 
+    /**
+     * Take the given Uri and turn into a Drawable
+     * @param uri The Uri to create the Drawable from
+     * @return Drawable object created from input stream of the Uri
+     * @throws IOException if there's an error opening the input stream
+     */
+    public Drawable getDrawableFromUri(Uri uri) throws IOException {
+
+        // open input stream from the Uri and create the drawable
+        InputStream inputStream = getContentResolver().openInputStream(uri);
+        Drawable drawable = Drawable.createFromStream(inputStream, uri.toString());
+
+        inputStream.close();
+        return drawable;
+    }
+
+    /**
+     * Inserts an image as a drawable into the EditText at the current cursor position
+     * Image is scaled to fit the width of the screen, while maintaining aspect ratio
+     * @param drawable Drawable object representing the image
+     * @param uri Uri of image used as a content description
+     */
+    public void insertImageIntoText(Drawable drawable, Uri uri){
+
+        // Calculate the dimensions of image
+        int screenWidth = getResources().getDisplayMetrics().widthPixels; // width of screen
+        int originalWidth = drawable.getIntrinsicWidth();
+        int originalHeight = drawable.getIntrinsicHeight();
+        int scaledHeight = (int) ((float) originalHeight * ((float) screenWidth / originalWidth));
+
+        // Set drawable size and create an imageSpan with it
+        drawable.setBounds(0, 0, screenWidth, scaledHeight);
+        ImageSpan imageSpan = new ImageSpan(drawable, uri.toString());
+
+        // get current positon of the cursor in the editText
+        int selectionStart = descriptionEditText.getSelectionStart();
+        int selectionEnd = descriptionEditText.getSelectionEnd();
+
+        // get current text
+        SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder(descriptionEditText.getText());
+
+        // insert ImageSpan at current cursor position with a space
+        spannableStringBuilder.replace(selectionStart, selectionEnd, " \n");
+        spannableStringBuilder.setSpan(imageSpan, selectionStart, selectionStart + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        // set updated text to edittext
+        descriptionEditText.setText(spannableStringBuilder);
+
+        // move cursor to the line after the inserted image
+        descriptionEditText.setSelection(selectionStart + 2);
+    }
+
     // ==============================
     // REGION: Setting up Note Data
     // ==============================
@@ -420,3 +484,5 @@ public class NewNoteActivity extends AppCompatActivity {
         finish();
     }
 }
+
+// @TODO the photos inserted are treated as text, so can be deleted by just backspacing... still a little bit finnicky
