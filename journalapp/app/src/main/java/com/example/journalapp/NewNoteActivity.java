@@ -3,6 +3,8 @@ package com.example.journalapp;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -32,10 +34,15 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 
+import com.example.journalapp.Utils.NoteMediaHandler;
 import com.example.journalapp.note.Note;
 import com.example.journalapp.note.NoteRepository;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -284,10 +291,12 @@ public class NewNoteActivity extends AppCompatActivity {
      * Permission not Granted: Request for permissions
      */
     private void checkPermissionAndOpenGallery() {
+
         if (ContextCompat.checkSelfPermission(getApplicationContext(),Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED){
             // if no permissions, request
             ActivityCompat.requestPermissions(NewNoteActivity.this, new String[] {Manifest.permission.READ_MEDIA_IMAGES},REQUEST_STORAGE_PERMISSION);
         }
+
         else{
             // if permission granted, go to gallery
             selectImage();
@@ -352,6 +361,16 @@ public class NewNoteActivity extends AppCompatActivity {
      */
     public void insertImageIntoText(Drawable drawable, Uri uri){
 
+        // first, save image to storage
+        Uri internalUri = saveImageToInternalStorage(uri);
+
+        if (internalUri == null){
+            Toast.makeText(this, "Error saving image internally", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Log.d("ImageInsertion", "Inserting image with URI: " + internalUri.toString());
+
         // Calculate the dimensions of image
         int screenWidth = getResources().getDisplayMetrics().widthPixels; // width of screen
         int originalWidth = drawable.getIntrinsicWidth();
@@ -360,17 +379,18 @@ public class NewNoteActivity extends AppCompatActivity {
 
         // Set drawable size and create an imageSpan with it
         drawable.setBounds(0, 0, screenWidth, scaledHeight);
-        ImageSpan imageSpan = new ImageSpan(drawable, uri.toString());
+        ImageSpan imageSpan = new ImageSpan(drawable, internalUri.toString());
 
         // get current positon of the cursor in the editText
         int selectionStart = descriptionEditText.getSelectionStart();
         int selectionEnd = descriptionEditText.getSelectionEnd();
 
+
         // get current text
         SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder(descriptionEditText.getText());
 
-        // insert ImageSpan at current cursor position with a space
-        spannableStringBuilder.replace(selectionStart, selectionEnd, " \n");
+        String placeholder = " \n";
+        spannableStringBuilder.replace(selectionStart, selectionEnd,placeholder);
         spannableStringBuilder.setSpan(imageSpan, selectionStart, selectionStart + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 
         // set updated text to edittext
@@ -378,6 +398,32 @@ public class NewNoteActivity extends AppCompatActivity {
 
         // move cursor to the line after the inserted image
         descriptionEditText.setSelection(selectionStart + 2);
+    }
+
+    /**
+     * Save the image to internal storage so it still exists even if user deletes from gallery
+     * -- should be called right after the user picks their image
+     * @param imageUri
+     * @return
+     */
+    private Uri saveImageToInternalStorage(Uri imageUri){
+        try{
+            // Open image using received Uri
+            InputStream inputStream = getContentResolver().openInputStream(imageUri);
+            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+
+            // Save image to app's internal storage
+            String imageName = "image_" + System.currentTimeMillis() + ".png";
+            FileOutputStream fos = openFileOutput(imageName, MODE_PRIVATE);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
+            fos.close();
+
+            // return URI to saved image
+            return FileProvider.getUriForFile(this,"com.example.journalapp.fileprovider", new File(getFilesDir(), imageName));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     // ==============================
@@ -424,8 +470,16 @@ public class NewNoteActivity extends AppCompatActivity {
                 dateTextView.setText(note.getCreatedDate());
                 titleEditText.setText(note.getTitle());
 
-                Spanned spannedDescription = Html.fromHtml(note.getDescriptionHtml());
-                descriptionEditText.setText(spannedDescription);
+                Spanned spannedDescription;
+                try{
+                    spannedDescription = NoteMediaHandler.htmlToSpannable(this, note.getDescriptionHtml());
+                    descriptionEditText.setText(spannedDescription);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                    Toast.makeText(NewNoteActivity.this, "Error loading images from the note", Toast.LENGTH_SHORT).show();
+                }
+
+
 
                 System.out.println("Raw Description: " + note.getDescriptionRaw());
                 System.out.println("HTML Description: " + note.getDescriptionHtml());
@@ -454,13 +508,13 @@ public class NewNoteActivity extends AppCompatActivity {
      *
      * @param description The journals description
      */
-    public void saveNoteDescription(String description) {
+    public void saveNoteDescription(String description) throws FileNotFoundException {
         Log.d("TextWatcher", "Updating the description: " + description);
         Spannable descriptionContent = descriptionEditText.getText();
-        String descriptionHTML = Html.toHtml(descriptionContent);
+        String descriptionHTML = NoteMediaHandler.spannableToHtml(descriptionContent);
 
         // update description
-        note.setDescriptionHtml(descriptionHTML);
+        note.setDescriptionHtml(descriptionHTML, this);
 
         noteRepository.updateNoteDescription(note);
     }

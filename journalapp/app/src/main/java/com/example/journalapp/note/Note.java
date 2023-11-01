@@ -1,6 +1,8 @@
 package com.example.journalapp.note;
 
+import android.content.Context;
 import android.text.Html;
+import android.text.Spannable;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -8,6 +10,9 @@ import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
+import com.example.journalapp.Utils.NoteMediaHandler;
+
+import java.io.FileNotFoundException;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -46,7 +51,6 @@ public class Note {
         this.id = UUID.randomUUID().toString();
         this.title = title;
         this.descriptionHtml = descriptionHtml;
-        this.descriptionRaw = Html.fromHtml(descriptionHtml).toString();
         this.createdDate = createdDate;
     }
 
@@ -119,10 +123,11 @@ public class Note {
      *
      * @param descriptionHtml HTML String description to set
      */
-    public void setDescriptionHtml(@Nullable String descriptionHtml) {
+    public void setDescriptionHtml(@Nullable String descriptionHtml, Context context) throws FileNotFoundException {
         this.descriptionHtml = descriptionHtml;
         // should automatically set the descriptionRaw
-        this.descriptionRaw = Html.fromHtml(descriptionHtml).toString();
+        Spannable spannableDescription = NoteMediaHandler.htmlToSpannable(context, descriptionHtml);
+        this.descriptionRaw = spannableDescription.toString();
     }
 
     /**
