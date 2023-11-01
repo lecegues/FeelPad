@@ -74,7 +74,6 @@ public class NewNoteActivity extends AppCompatActivity {
 
     // Permissions Variables
     private static final int REQUEST_STORAGE_PERMISSION = 1;
-    private static final int REQUEST_CODE_SELECT_IMAGE = 2;
 
     // Special member variable used to launch activities that expect a result
     private final ActivityResultLauncher<String> mGetContent =
@@ -389,7 +388,7 @@ public class NewNoteActivity extends AppCompatActivity {
         // get current text
         SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder(descriptionEditText.getText());
 
-        String placeholder = " \n";
+        String placeholder = " \n"; // change where the image is placed in reference to the cursor
         spannableStringBuilder.replace(selectionStart, selectionEnd,placeholder);
         spannableStringBuilder.setSpan(imageSpan, selectionStart, selectionStart + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 
@@ -471,6 +470,8 @@ public class NewNoteActivity extends AppCompatActivity {
                 titleEditText.setText(note.getTitle());
 
                 Spanned spannedDescription;
+
+                // convert HTML description to spanned object
                 try{
                     spannedDescription = NoteMediaHandler.htmlToSpannable(this, note.getDescriptionHtml());
                     descriptionEditText.setText(spannedDescription);
@@ -479,10 +480,9 @@ public class NewNoteActivity extends AppCompatActivity {
                     Toast.makeText(NewNoteActivity.this, "Error loading images from the note", Toast.LENGTH_SHORT).show();
                 }
 
+                Log.d("ValueCheck", "Raw Description: " + note.getDescriptionRaw());
+                Log.d("ValueCheck", "HTML Description: " + note.getDescriptionHtml());
 
-
-                System.out.println("Raw Description: " + note.getDescriptionRaw());
-                System.out.println("HTML Description: " + note.getDescriptionHtml());
 
             });
         });

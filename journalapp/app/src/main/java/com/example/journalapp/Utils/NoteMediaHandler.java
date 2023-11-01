@@ -30,8 +30,14 @@ public class NoteMediaHandler {
      * @return
      */
     public static String spannableToHtml(Spannable spannableContent){
+
+        // retrieve a copy of the input Spannable content
         SpannableStringBuilder spannable = new SpannableStringBuilder(spannableContent);
+
+        // retrieve all imageSpans
         ImageSpan[] imageSpans = spannable.getSpans(0, spannable.length(), ImageSpan.class);
+
+        // iterate over each imagespan and replace it with corresponding HTML tags
         for (ImageSpan imageSpan : imageSpans){
             int start = spannable.getSpanStart(imageSpan);
             int end = spannable.getSpanEnd(imageSpan);
@@ -40,44 +46,47 @@ public class NoteMediaHandler {
             // Check if the imageUri is null or empty
             if (imageUri == null || imageUri.isEmpty()) {
                 Log.w("spannableToHtml", "Encountered ImageSpan with null or empty source.");
+                continue;
             }
 
             String imgTag = "<img src=\"" + imageUri + "\">";
-            spannable.replace(start, end, imgTag);
+            spannable.replace(start, end, imgTag); // replace imageSpan with tags
         }
-        return Html.toHtml(spannable);
+
+        return Html.toHtml(spannable); // return converted html string
 
     }
 
     /**
      * Custom implementation of Html.fromHtml that supports imageSpans
-     * If calling method, pass this as the argument:
-     * Spannable result = YourUtilityClass.htmlToSpannable(this, yourHtmlString);
+     * Converts HTML strings containing <img> tags to corresponding Spannables
+     * Usage: Spannable result = YourUtilityClass.htmlToSpannable(this, yourHtmlString);
      * @param context
      * @param html
-     * @return
+     * @return Spannable representation of the provided HTML String
      * @throws FileNotFoundException
      */
     public static Spannable htmlToSpannable(Context context, String html) throws FileNotFoundException{
-        Log.d("ImageRetrieval", "htmlToSpannable is activated");
-
         Spannable spannable = (Spannable) Html.fromHtml(html);
         Log.d("ConversionCheck", "Initial Spannable: " + spannable.toString());
 
-        // Adjusted pattern to match <img> tags and extract the src value
+        // Pattern to match <img> tags and extract src value
         Pattern pattern = Pattern.compile("<img src=\"(.*?)\">");
-        Matcher matcher = pattern.matcher(html); // Use the original 'html' string here
+        Matcher matcher = pattern.matcher(html);
 
+        // Remove existing ImageSpans from the Spannable
         ImageSpan[] existingImageSpans = spannable.getSpans(0, spannable.length(), ImageSpan.class);
         for (ImageSpan span : existingImageSpans) {
             spannable.removeSpan(span);
         }
 
-        int count = 0;
-        int lastEndPosition = 0;
+        int lastEndPosition = 0; // keep track of last position where imageSpan was inserted
+
+        // iterate over each <img> tag found in the HTML string
         while (matcher.find()) {
             Log.d("ImageRetrieval", "Found a match: " + matcher.group());
-            count++;
+
+
             String imageUriStr = matcher.group(1);
             Uri imageUri = Uri.parse(imageUriStr);
             Log.d("ImageRetrieval", "Retrieving image with URI: " + imageUri.toString());
@@ -89,7 +98,7 @@ public class NoteMediaHandler {
                     Log.d("FileCheck", "File exists using content URI.");
                     inputStream.close();
                 } else {
-                    Log.d("FileCheck", "File doesn't exist using content URI.");
+                    Log.e("FileCheck", "File doesn't exist using content URI.");
                 }
             } catch (FileNotFoundException e) {
                 Log.e("FileCheck", "File not found using content URI.", e);
@@ -97,37 +106,36 @@ public class NoteMediaHandler {
                 throw new RuntimeException(e);
             }
 
-            context.grantUriPermission(context.getPackageName(), imageUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            context.grantUriPermission(context.getPackageName(), imageUri, Intent.FLAG_GRANT_READ_URI_PERMISSION); // scoped storage
 
-
+            // Decode the image from provided URI into a Bitmap
             Bitmap bitmap = BitmapFactory.decodeStream(context.getContentResolver().openInputStream(imageUri));
+
+            // if Bitmap was decoded:
             if (bitmap != null) {
                 Log.d("ImageRetrieval", "Bitmap decoded with dimensions: " + bitmap.getWidth() + "x" + bitmap.getHeight());
 
-                // Calculate the dimensions of the image to fit the screen width
+                // Calculate the dimensions of the image to fit the screen width (same as NewNoteActivity.insertImageIntoText)
                 int screenWidth = context.getResources().getDisplayMetrics().widthPixels;
                 int originalWidth = bitmap.getWidth();
                 int originalHeight = bitmap.getHeight();
                 int scaledHeight = (int) ((float) originalHeight * ((float) screenWidth / originalWidth));
                 bitmap = Bitmap.createScaledBitmap(bitmap, screenWidth, scaledHeight, true);
 
+                // Create new imageSpan using scaled bitmap and image source Uri
                 ImageSpan imageSpan = new CustomImageSpan(context, bitmap, imageUri.toString()); // Use the bitmap to create the ImageSpan
-
                 Log.d("ImageRetrieval", "ImageSpan created with source: " + imageSpan.getSource());
 
-                // Find the position of the image placeholder in the spannable
-                String placeholder = "\uFFFC"; // Assuming you've used a space as a placeholder
+                // Define the placeholder for the image in the spannable content (might have to be changed in future for different filetypes)
+                String placeholder = "\uFFFC"; // This represents the Object Replacement Character (used for objects like images in text)
 
+                // find pos of image placeholder and when found, replace with imagespan
                 int start = spannable.toString().indexOf(placeholder, lastEndPosition);
-
                 if (start != -1) {
                     int end = start + placeholder.length();
                     spannable.setSpan(imageSpan, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                     lastEndPosition = end; // Update the last end position
-
                     Log.d("ImageRetrieval", "Replacing placeholder from position: " + start + " to " + end);
-
-
                 } else {
                     Log.e("ImageRetrieval", "Failed to decode bitmap from URI: " + imageUri.toString());
                 }
@@ -135,7 +143,6 @@ public class NoteMediaHandler {
                 Log.e("ImageRetrieval", "Placeholder not found in spannable.");
             }
         }
-        Log.d("ImageRetrieval", "Number of <img> tags found: " + count);
 
         return spannable;
     }
