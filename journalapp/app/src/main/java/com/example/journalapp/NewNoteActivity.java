@@ -1,8 +1,12 @@
 package com.example.journalapp;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.Html;
 import android.text.Spannable;
@@ -18,7 +22,13 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.example.journalapp.note.Note;
 import com.example.journalapp.note.NoteRepository;
@@ -37,18 +47,33 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable;
  * Contains creation and saving of a note
  */
 public class NewNoteActivity extends AppCompatActivity {
+
+    // Note Component Variables
     private TextView dateTextView;
     private EditText titleEditText;
     private EditText descriptionEditText;
     private Button BtnBold;
+
+    // Note Database Variables
     private NoteRepository noteRepository;
     private Note note;
     private final CompositeDisposable compositeDisposable = new CompositeDisposable();
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor(); // thread manager
 
-    /* ExecutorService-- must be used because database operations can
-       take a non-trivial amount of time and block the main UI thread,
-       causing an error*/
-    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    // Permissions Variables
+    private static final int REQUEST_STORAGE_PERMISSION = 1;
+    private static final int REQUEST_CODE_SELECT_IMAGE = 2;
+
+    // Special member variable used to launch activities that expect a result
+    private final ActivityResultLauncher<String> mGetContent =
+            registerForActivityResult( new ActivityResultContracts.GetContent(), uri -> {
+                // Handle returned Uri's
+
+                if (uri != null) {
+                    // Do nothing
+
+                }
+            });
 
     /**
      * Called when activity is first created
@@ -80,6 +105,10 @@ public class NewNoteActivity extends AppCompatActivity {
         }
 
     }
+
+    // ==============================
+    // REGION: UI Initialization
+    // ==============================
 
     /**
      * Initializes UI widgets, ViewModel, and set the edit text watcher with debouncing.
@@ -178,7 +207,12 @@ public class NewNoteActivity extends AppCompatActivity {
                 if (menuItem.getItemId() == R.id.item1a) {
                     Toast.makeText(getApplicationContext(), "Take Photo/Video", Toast.LENGTH_SHORT).show();
                     return true;
+
+                // if user wants to go into gallery to add photos to notes page
                 } else if (menuItem.getItemId() == R.id.item1b) {
+                    System.out.println("Gallery button is pressed. Now asking for permission");
+                    checkPermissionAndOpenGallery();
+
                     return true;
                 } else if (menuItem.getItemId() == R.id.item2) {
                     Toast.makeText(getApplicationContext(), "Add Voice Note", Toast.LENGTH_SHORT).show();
@@ -207,6 +241,10 @@ public class NewNoteActivity extends AppCompatActivity {
 
     }
 
+    // ==============================
+    // REGION: Text Formatting
+    // ==============================
+
     /**
      * Make text bold
      */
@@ -222,6 +260,65 @@ public class NewNoteActivity extends AppCompatActivity {
             descriptionEditText.setSelection(start,end);
         }
     }
+
+    // ==============================
+    // REGION: Image Handling
+    // ==============================
+
+    /**
+     * Called by a button
+     * Checks for permissions to read images from storage
+     * Permission Granted: Opens gallery for image selection
+     * Permission not Granted: Request for permissions
+     */
+    private void checkPermissionAndOpenGallery() {
+        if (ContextCompat.checkSelfPermission(getApplicationContext(),Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED){
+            // if no permissions, request
+            ActivityCompat.requestPermissions(NewNoteActivity.this, new String[] {Manifest.permission.READ_MEDIA_IMAGES},REQUEST_STORAGE_PERMISSION);
+        }
+        else{
+            // if permission granted, go to gallery
+            selectImage();
+        }
+    }
+
+    /**
+     * Callback for the result from requesting permissions
+     * @param requestCode The request code in
+     * @param permissions The requested permissions. Never null.
+     * @param grantResults The grant results for the corresponding permissions
+     *     which is either {@link android.content.pm.PackageManager#PERMISSION_GRANTED}
+     *     or {@link android.content.pm.PackageManager#PERMISSION_DENIED}. Never null.
+     *
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults){
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        // check permission requests for READ_MEDIA_IMAGES
+        if (requestCode == REQUEST_STORAGE_PERMISSION && grantResults.length > 0){
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                // if permission granted, then allow access
+            }
+            else{
+
+                // if permission denied, inform user
+                Toast.makeText(this, "Permission Denied!", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    /**
+     * Launches an intent to open the gallery
+     * Allow the user to select an image
+     */
+    private void selectImage(){
+        mGetContent.launch("image/*");
+    }
+
+    // ==============================
+    // REGION: Setting up Note Data
+    // ==============================
 
     /**
      * Initialize a new note with a date and store it
@@ -273,6 +370,10 @@ public class NewNoteActivity extends AppCompatActivity {
         });
     }
 
+    // ==============================
+    // REGION: Database Operations
+    // ==============================
+
     /**
      * Save note title locally and to database
      *
@@ -299,6 +400,11 @@ public class NewNoteActivity extends AppCompatActivity {
 
         noteRepository.updateNoteDescription(note);
     }
+
+    // ==============================
+    // REGION: Other
+    // ==============================
+
     /**
      * Remove the note from the database if there is, no
      * title or description to be saved
