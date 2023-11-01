@@ -1,21 +1,38 @@
 package com.example.journalapp;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.text.Editable;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
 import android.text.TextWatcher;
+import android.text.style.ImageSpan;
+import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.journalapp.note.Note;
 import com.example.journalapp.note.NoteRepository;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
 import java.util.concurrent.ExecutorService;
@@ -33,6 +50,7 @@ public class NewNoteActivity extends AppCompatActivity {
     private TextView dateTextView;
     private EditText titleEditText;
     private EditText descriptionEditText;
+    private Button BtnBold;
     private NoteRepository noteRepository;
     private Note note;
     private final CompositeDisposable compositeDisposable = new CompositeDisposable();
@@ -41,7 +59,6 @@ public class NewNoteActivity extends AppCompatActivity {
        take a non-trivial amount of time and block the main UI thread,
        causing an error*/
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
-
 
     /**
      * Called when activity is first created
@@ -56,6 +73,7 @@ public class NewNoteActivity extends AppCompatActivity {
         // Initialize UI Widgets & set current date
         initWidgets();
         initOptionsMenu();
+        initToolBar();
 
         // Check if the received intent is for a new note or existing note
         Intent intent = getIntent();
@@ -171,7 +189,6 @@ public class NewNoteActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), "Take Photo/Video", Toast.LENGTH_SHORT).show();
                     return true;
                 } else if (menuItem.getItemId() == R.id.item1b) {
-                    Toast.makeText(getApplicationContext(), "Add Photo/Video From Library", Toast.LENGTH_SHORT).show();
                     return true;
                 } else if (menuItem.getItemId() == R.id.item2) {
                     Toast.makeText(getApplicationContext(), "Add Voice Note", Toast.LENGTH_SHORT).show();
@@ -189,6 +206,31 @@ public class NewNoteActivity extends AppCompatActivity {
                 return true;
             });
         });
+    }
+
+    /**
+     * Initialize the bottom toolbar
+     */
+    private void initToolBar(){
+        BtnBold = findViewById(R.id.bold_button);
+        BtnBold.setOnClickListener(v -> toggleBold());
+
+    }
+
+    /**
+     * Make text bold
+     */
+    private void toggleBold(){
+        int start = descriptionEditText.getSelectionStart();
+        int end = descriptionEditText.getSelectionEnd();
+        if (start < end) {
+            // if user has selected and pressed bold, then:
+            SpannableStringBuilder spannableBuilder = new SpannableStringBuilder(descriptionEditText.getText());
+            StyleSpan boldSpan = new StyleSpan(Typeface.BOLD);
+            spannableBuilder.setSpan(boldSpan, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            descriptionEditText.setText(spannableBuilder);
+            descriptionEditText.setSelection(start,end);
+        }
     }
 
     /**
@@ -256,7 +298,6 @@ public class NewNoteActivity extends AppCompatActivity {
         note.setDescription(description);
         noteRepository.updateNoteDescription(note);
     }
-
     /**
      * Remove the note from the database if there is, no
      * title or description to be saved

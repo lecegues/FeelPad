@@ -143,5 +143,23 @@
 
     </ScrollView>
 
+    <com.google.android.material.bottomappbar.BottomAppBar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/bold_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="desc_bold"
+                android:padding="12dp"
+                android:text="Bold"
+                />
+
+
+    </com.google.android.material.bottomappbar.BottomAppBar>
+
+
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
