@@ -43,7 +43,7 @@ public interface NoteDao {
      */
     @Query("SELECT DISTINCT * FROM note_table " +
             "WHERE title LIKE '%' || :string || '%' " +
-            "OR description LIKE '%' || :string || '%' " +
+            "OR descriptionRaw LIKE '%' || :string || '%' " +
             "OR create_date LIKE '%' || :string || '%'")
     LiveData<List<Note>> getAllNotesWhereTitleDateDescContains(String string);
 
@@ -86,11 +86,12 @@ public interface NoteDao {
     /**
      * Update the description of note with id
      *
-     * @param noteId              the notes id
-     * @param providedDescription The new description
+     * @param noteId                     the notes id
+     * @param providedDescriptionHTML    the description (HTML String)
+     * @param providedDescriptionRaw     the description (raw String)
      */
-    @Query("UPDATE note_table SET description = :providedDescription WHERE id = :noteId")
-    void updateNoteDescription(String providedDescription, String noteId);
+    @Query("UPDATE note_table SET descriptionHtml = :providedDescriptionHTML, descriptionRaw = :providedDescriptionRaw WHERE id = :noteId")
+    void updateNoteDescriptionWithRaw(String providedDescriptionHTML, String providedDescriptionRaw, String noteId);
 
     /**
      * Deletes a note from the database

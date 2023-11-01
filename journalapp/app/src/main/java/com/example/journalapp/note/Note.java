@@ -1,5 +1,7 @@
 package com.example.journalapp.note;
 
+import android.text.Html;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.room.ColumnInfo;
@@ -24,8 +26,11 @@ public class Note {
     @ColumnInfo(name = "title")
     private String title;
 
-    @ColumnInfo(name = "description")
-    private String description;
+    @ColumnInfo(name = "descriptionRaw")
+    private String descriptionRaw;
+
+    @ColumnInfo(name = "descriptionHtml")
+    private String descriptionHtml;
 
     @ColumnInfo(name = "create_date")
     private String createdDate;
@@ -34,13 +39,14 @@ public class Note {
      * Constructor to create a new Note instance
      *
      * @param title       String representing title of the note
-     * @param description String representing the description of the note
+     * @param descriptionHtml HTML string representing the description of the note
      * @param createdDate String representing when the note was created
      */
-    public Note(String title, String description, String createdDate) {
+    public Note(String title, String descriptionHtml, String createdDate) {
         this.id = UUID.randomUUID().toString();
         this.title = title;
-        this.description = description;
+        this.descriptionHtml = descriptionHtml;
+        this.descriptionRaw = Html.fromHtml(descriptionHtml).toString();
         this.createdDate = createdDate;
     }
 
@@ -86,17 +92,37 @@ public class Note {
      *
      * @return String description of a note
      */
-    public String getDescription() {
-        return description;
+    public String getDescriptionRaw() {
+        return descriptionRaw;
     }
 
     /**
      * Setter for description of a note
      *
-     * @param description String description to set
+     * @param descriptionRaw String description to set
      */
-    public void setDescription(@Nullable String description) {
-        this.description = description;
+    public void setDescriptionRaw(@Nullable String descriptionRaw) {
+        this.descriptionRaw = descriptionRaw;
+    }
+
+    /**
+     * Getter for HTML description of the note
+     *
+     * @return HTML String description of a note
+     */
+    public String getDescriptionHtml() {
+        return descriptionHtml;
+    }
+
+    /**
+     * Setter for HTML description of a note
+     *
+     * @param descriptionHtml HTML String description to set
+     */
+    public void setDescriptionHtml(@Nullable String descriptionHtml) {
+        this.descriptionHtml = descriptionHtml;
+        // should automatically set the descriptionRaw
+        this.descriptionRaw = Html.fromHtml(descriptionHtml).toString();
     }
 
     /**
@@ -128,6 +154,6 @@ public class Note {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Note note = (Note) o;
-        return id.equals(note.id) && Objects.equals(title, note.title) && Objects.equals(description, note.description) && Objects.equals(createdDate, note.createdDate);
+        return id.equals(note.id) && Objects.equals(title, note.title) && Objects.equals(descriptionRaw, note.descriptionRaw) && Objects.equals(createdDate, note.createdDate);
     }
 }

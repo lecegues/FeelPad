@@ -54,7 +54,7 @@ public class NoteListAdapter extends ListAdapter<Note, NoteViewHolder> {
     public void onBindViewHolder(NoteViewHolder holder, int position) {
         Note current = getItem(position);
         String title = current.getTitle();
-        String desc = current.getDescription();
+        String desc = current.getDescriptionRaw();
         Log.d("NoteListAdapter", "onBindViewHolder title: " + title);
         Log.d("NoteListAdapter", "onBindViewHolder desc: " + desc);
         holder.bind(title, desc);

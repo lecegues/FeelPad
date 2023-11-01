@@ -67,7 +67,7 @@ public class NoteRepository {
      * @param note The Note to be updated
      */
     public void updateNoteDescription(Note note) {
-        NoteDatabase.databaseWriteExecutor.execute(() -> noteDao.updateNoteDescription(note.getDescription(), note.getId()));
+        NoteDatabase.databaseWriteExecutor.execute(() -> noteDao.updateNoteDescriptionWithRaw(note.getDescriptionHtml(), note.getDescriptionRaw(), note.getId()));
     }
 
     /**

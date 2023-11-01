@@ -1,21 +1,14 @@
 package com.example.journalapp;
 
-import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.graphics.Typeface;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.text.Editable;
+import android.text.Html;
 import android.text.Spannable;
-import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextWatcher;
-import android.text.style.ImageSpan;
 import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.View;
@@ -25,14 +18,11 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.journalapp.note.Note;
 import com.example.journalapp.note.NoteRepository;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
 import java.util.concurrent.ExecutorService;
@@ -272,7 +262,13 @@ public class NewNoteActivity extends AppCompatActivity {
                 // Populate UI with existing note
                 dateTextView.setText(note.getCreatedDate());
                 titleEditText.setText(note.getTitle());
-                descriptionEditText.setText(note.getDescription());
+
+                Spanned spannedDescription = Html.fromHtml(note.getDescriptionHtml());
+                descriptionEditText.setText(spannedDescription);
+
+                System.out.println("Raw Description: " + note.getDescriptionRaw());
+                System.out.println("HTML Description: " + note.getDescriptionHtml());
+
             });
         });
     }
@@ -295,7 +291,12 @@ public class NewNoteActivity extends AppCompatActivity {
      */
     public void saveNoteDescription(String description) {
         Log.d("TextWatcher", "Updating the description: " + description);
-        note.setDescription(description);
+        Spannable descriptionContent = descriptionEditText.getText();
+        String descriptionHTML = Html.toHtml(descriptionContent);
+
+        // update description
+        note.setDescriptionHtml(descriptionHTML);
+
         noteRepository.updateNoteDescription(note);
     }
     /**
@@ -305,9 +306,9 @@ public class NewNoteActivity extends AppCompatActivity {
      * @param view The button view that triggers the save operation
      */
     public void exitNote(View view) {
-        String description = note.getDescription();
+        String descriptionHTML = note.getDescriptionHtml();
         String title = note.getTitle();
-        if (description.isEmpty() && title.isEmpty()) {
+        if (descriptionHTML.isEmpty() && title.isEmpty()) {
             noteRepository.deleteNote(note);
         }
         finish();
