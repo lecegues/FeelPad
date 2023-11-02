@@ -30,9 +30,7 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable;
  * Contains creation and saving of a note
  */
 public class NewNoteActivity extends AppCompatActivity {
-    private TextView dateTextView;
     private EditText titleEditText;
-    private EditText descriptionEditText;
     private NoteRepository noteRepository;
     private Note note;
     private final CompositeDisposable compositeDisposable = new CompositeDisposable();
@@ -77,9 +75,7 @@ public class NewNoteActivity extends AppCompatActivity {
      * Initializes UI widgets, ViewModel, and set the edit text watcher with debouncing.
      */
     private void initWidgets() {
-        dateTextView = findViewById(R.id.dateTextView);
         titleEditText = findViewById(R.id.titleEditText);
-        descriptionEditText = findViewById(R.id.descriptionEditText);
 
         noteRepository = NoteRepository.getInstance(getApplication()); // initialize the note repo
 
@@ -112,35 +108,9 @@ public class NewNoteActivity extends AppCompatActivity {
         Observable<String> titleObservable = titleChangedObservable
                 .debounce(SAVE_DELAY, TimeUnit.MILLISECONDS);
 
-        /*
-         * Creates an Observable to monitor changes in the description using debouncing
-         */
-        Observable<String> descriptionChangedObservable = Observable.create(emitter -> descriptionEditText.addTextChangedListener(new TextWatcher() {
-
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                // actions before text is changed
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                emitter.onNext(charSequence.toString()); // emitter notified of update
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-                // actions after text is changed
-            }
-        }));
-
-        // Sets debounce time (ms) for description
-        /* 5 seconds */
-        Observable<String> descriptionObservable = descriptionChangedObservable
-                .debounce(SAVE_DELAY, TimeUnit.MILLISECONDS);
 
         // Subscribe to observables to trigger a save to database
         compositeDisposable.addAll(
-                descriptionObservable.subscribe(this::saveNoteDescription),
                 titleObservable.subscribe(this::saveNoteTitle));
     }
 
@@ -198,7 +168,6 @@ public class NewNoteActivity extends AppCompatActivity {
     private void setNewNote() {
         Date currentDate = new Date();
         note = new Note("", "", currentDate.toString());
-        dateTextView.setText(note.getCreatedDate());
         noteRepository.insertNote(note);
     }
 
@@ -228,9 +197,7 @@ public class NewNoteActivity extends AppCompatActivity {
             // Use UI Thread to update UI
             runOnUiThread(() -> {
                 // Populate UI with existing note
-                dateTextView.setText(note.getCreatedDate());
                 titleEditText.setText(note.getTitle());
-                descriptionEditText.setText(note.getDescription());
             });
         });
     }
