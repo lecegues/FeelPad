@@ -12,12 +12,18 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.journalapp.newnote.NoteAdapter;
+import com.example.journalapp.newnote.NoteItem;
 import com.example.journalapp.note.Note;
 import com.example.journalapp.note.NoteRepository;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -39,6 +45,13 @@ public class NewNoteActivity extends AppCompatActivity {
        take a non-trivial amount of time and block the main UI thread,
        causing an error*/
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+
+    // RecyclerView stuff
+    private RecyclerView noteContentRecyclerView;
+    private NoteAdapter noteAdapter;
+    private List<NoteItem> noteItems;
+
 
 
     /**
@@ -169,6 +182,22 @@ public class NewNoteActivity extends AppCompatActivity {
         Date currentDate = new Date();
         note = new Note("", "", currentDate.toString());
         noteRepository.insertNote(note);
+
+        // Initialize your list of note items with a default text item
+        noteItems = new ArrayList<>();
+        noteItems.add(new NoteItem(NoteItem.ItemType.TEXT, "", null)); // Empty text for the user to start typing
+
+        // Initialize the RecyclerView and Adapter
+        RecyclerView noteContentRecyclerView = findViewById(R.id.recycler_view_notes); // Make sure this ID matches your layout
+        NoteAdapter noteAdapter = new NoteAdapter(noteItems);
+
+        // Set up the RecyclerView
+        noteContentRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        noteContentRecyclerView.setAdapter(noteAdapter);
+
+        // Request focus for the EditText in the first item of the RecyclerView
+        // This method needs to be implemented in your NoteAdapter class
+        // noteAdapter.requestFocusForPosition(0);
     }
 
     /**
