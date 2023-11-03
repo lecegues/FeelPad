@@ -6,8 +6,11 @@ import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Transaction;
+import androidx.room.Update;
 
 import com.example.journalapp.note.Note;
+import com.example.journalapp.note.NoteItemEntity;
 
 import java.util.List;
 
@@ -24,6 +27,7 @@ public interface NoteDao {
      */
     @Query("SELECT * FROM note_table")
     LiveData<List<Note>> getAllNotes();
+
 
     /**
      * Retrieves all notes from the database ordered by created date
@@ -55,6 +59,10 @@ public interface NoteDao {
      */
     @Query("SELECT * FROM note_table WHERE title = :providedTitle")
     LiveData<List<Note>> getNotesWithTitle(String providedTitle);
+
+    // ==============================
+    // Normal Note CRUD
+    // ==============================
 
     /**
      * Retrieves a single note given the id
@@ -92,6 +100,7 @@ public interface NoteDao {
     @Query("UPDATE note_table SET description = :providedDescription WHERE id = :noteId")
     void updateNoteDescription(String providedDescription, String noteId);
 
+
     /**
      * Deletes a note from the database
      *
@@ -99,4 +108,35 @@ public interface NoteDao {
      */
     @Delete
     void deleteNote(Note note);
+
+    // ==============================
+    // Normal NoteItem CRUD
+    // ==============================
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    void insertNoteItem(NoteItemEntity noteItem);
+
+    @Update
+    void updateNoteItem(NoteItemEntity noteItem);
+
+    @Delete
+    void deleteNoteItem(NoteItemEntity noteItem);
+
+    @Query("SELECT * FROM note_items WHERE note_id = :noteId ORDER BY order_index")
+    LiveData<List<NoteItemEntity>> getNoteItemsForNote(String noteId);
+
+    // You may also need a transaction to insert a full note with items
+    @Transaction
+    default void insertFullNote(Note note, List<NoteItemEntity> noteItems) {
+        // Insert the note
+        insertNote(note);
+        // Insert all note items
+        for (NoteItemEntity item : noteItems) {
+            insertNoteItem(item);
+        }
+    }
+
+
+
+
 }
