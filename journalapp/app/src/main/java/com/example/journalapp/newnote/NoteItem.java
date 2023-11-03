@@ -17,11 +17,13 @@ public class NoteItem {
     private ItemType type;
     private String content; // for text
     private Uri imageUri; // for images
+    private int orderIndex; // keep track of order in a list
 
-    public NoteItem(ItemType type, String content, Uri imageUri){
+    public NoteItem(ItemType type, String content, Uri imageUri, int orderIndex){
         this.type = type;
         this.content = content;
         this.imageUri = imageUri;
+        this.orderIndex = orderIndex;
     }
     public ItemType getType() {
         return type;
@@ -47,5 +49,11 @@ public class NoteItem {
         this.imageUri = imageUri;
     }
 
+    public int getOrderIndex() {
+        return orderIndex;
+    }
 
+    public void setOrderIndex(int orderIndex) {
+        this.orderIndex = orderIndex;
+    }
 }

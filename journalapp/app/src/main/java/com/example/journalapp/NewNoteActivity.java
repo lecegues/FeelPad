@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.journalapp.newnote.NoteAdapter;
 import com.example.journalapp.newnote.NoteItem;
 import com.example.journalapp.note.Note;
+import com.example.journalapp.note.NoteItemEntity;
 import com.example.journalapp.note.NoteRepository;
 
 import java.lang.reflect.InvocationTargetException;
@@ -187,7 +188,7 @@ public class NewNoteActivity extends AppCompatActivity {
 
         // Initialize the contents of noteItems beginning with a single EditText
         noteItems = new ArrayList<>();
-        noteItems.add(new NoteItem(NoteItem.ItemType.TEXT, "", null)); // Empty text for the user to start typing
+        noteItems.add(new NoteItem(NoteItem.ItemType.TEXT, "", null, 0)); // Empty text for the user to start typing
 
         // Initialize the RecyclerView and Adapter
         RecyclerView noteContentRecyclerView = findViewById(R.id.recycler_view_notes); // Make sure this ID matches your layout
@@ -244,12 +245,27 @@ public class NewNoteActivity extends AppCompatActivity {
     /**
      * Save note description locally and to the database.
      *
-     * @param description The journals description
      */
-    public void saveNoteDescription(String description) {
-        Log.d("TextWatcher", "Updating the description: " + description);
-        note.setDescription(description);
-        noteRepository.updateNoteDescription(note);
+    public void saveNoteContent() {
+        Log.d("TextWatcher", "Saving the NoteContents"); // change log
+
+        // Convert NoteItem to NoteItemEntity
+        List<NoteItemEntity> noteItemEntities = new ArrayList<>();
+        for (NoteItem noteItem : noteItems) {
+            noteItemEntities.add(new NoteItemEntity(
+                    null, // let the database generate the ID
+                    note.getId(), // the ID of the note
+                    noteItem.getType().ordinal(), // convert enum to int
+                    noteItem.getContent(),
+                    noteItem.getOrderIndex() // you need to manage the order index in your adapter
+            ));
+            Log.e("Check Content", noteItem.getContent());
+        }
+
+        // Save the full note with items to the database
+        noteRepository.insertFullNote(note, noteItemEntities);
+
+
     }
 
     /**
@@ -259,6 +275,7 @@ public class NewNoteActivity extends AppCompatActivity {
      * @param view The button view that triggers the save operation
      */
     public void exitNote(View view) {
+        saveNoteContent();
         String description = note.getDescription();
         String title = note.getTitle();
         if (description.isEmpty() && title.isEmpty()) {
