@@ -2,6 +2,8 @@ package com.example.journalapp.newnote;
 
 import android.content.Context;
 import android.net.Uri;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -92,6 +94,19 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         }
     }
 
+    /**
+     * Deals with views that are being recycled
+     * We want to delete the TextWatcher
+     * @param holder The ViewHolder for the view being recycled
+     */
+    @Override
+    public void onViewRecycled(@NonNull RecyclerView.ViewHolder holder) {
+        super.onViewRecycled(holder);
+        if (holder instanceof TextViewHolder){
+            ((TextViewHolder) holder).clearTextWatcher();
+        }
+    }
+
     @Override
     public int getItemCount() {
         return noteItems.size();
@@ -104,6 +119,7 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
     static class TextViewHolder extends RecyclerView.ViewHolder {
         // Define your text view holder components
         private EditText editText;
+        private TextWatcher textWatcher;
 
         /**
          * Constructs a TextViewHolder for text content
@@ -119,9 +135,45 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
          * @param noteItem
          */
         public void bind(NoteItem noteItem) {
-            // Assuming NoteItem has a method to get text content
+
+            // First remove any previous textWatcher
+            clearTextWatcher();
+
+            // Set the content if there is content
             editText.setText(noteItem.getContent());
-            // Add more binding logic if needed
+
+            // Create a new textWatcher
+            textWatcher = new TextWatcher(){
+
+                @Override
+                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                }
+
+                @Override
+                public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                    // Update NoteItem content as the user types stuff
+                    noteItem.setContent(charSequence.toString());
+                }
+
+                @Override
+                public void afterTextChanged(Editable editable) {
+                    // Can implement debouncing here
+                }
+            };
+
+            // Attach textWatcher to EditText
+            editText.addTextChangedListener(textWatcher);
+        }
+
+        /**
+         * Clear the TextWatcher from the TextViewHolder
+         */
+        public void clearTextWatcher(){
+            if (textWatcher != null){
+                editText.removeTextChangedListener(textWatcher);
+                textWatcher = null;
+            }
         }
     }
 

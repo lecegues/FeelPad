@@ -136,6 +136,11 @@ public class NoteRepository {
         return noteDao.getNoteItemsForNote(noteId);
     }
 
+
+    public List<NoteItemEntity> getNoteItemsForNoteSync(String noteId){
+        return noteDao.getNoteItemsForNoteSync(noteId);
+    }
+
     // You may also want to add a method to insert a full note with items
     /**
      * Inserts a full note with its items into the database.
