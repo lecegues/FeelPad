@@ -7,6 +7,7 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
 import com.example.journalapp.note.Note;
+import com.example.journalapp.note.NoteItemEntity;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -15,7 +16,7 @@ import java.util.concurrent.Executors;
  * A Room Database for storing notes
  * Note: entities section indicates database will have 1 table (represented inside Note.class)
  */
-@Database(entities = {Note.class}, version = 1, exportSchema = false)
+@Database(entities = {Note.class, NoteItemEntity.class}, version = 1, exportSchema = false)
 public abstract class NoteDatabase extends RoomDatabase {
     public abstract NoteDao noteDao(); // provides access to the NoteDao database operations
 

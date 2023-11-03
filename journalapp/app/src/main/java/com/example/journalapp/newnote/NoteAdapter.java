@@ -18,14 +18,14 @@ import com.example.journalapp.R;
 import java.util.List;
 
 /**
- * Adapter for the contents inside the Note
- * Remember: Converts data in a format that looks proper
+ * Adapter for managing the display of different types of items within a note.
+ * It handles the creation and binding of view holders for text and image content.
  */
 public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
     private List<NoteItem> noteItems;
 
     /**
-     * Constructor
+     * Constructs a NoteAdapter with a list of Noteitems
      * @param noteItems
      */
     public NoteAdapter(List<NoteItem> noteItems){
@@ -34,10 +34,18 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
 
     @Override
     public int getItemViewType(int position) {
-        // Return the view type of the item at position for correct viewholder binding
+        // Return the view type of the item at position for correct View holder binding
         return noteItems.get(position).getType().ordinal();
     }
 
+    /**
+     * Inflates the appropriate ViewHolder for the given view type.
+     * @param parent The ViewGroup into which the new View will be added after it is bound to
+     *               an adapter position.
+     * @param viewType The view type of the new View.
+     *
+     * @return a new Viewholder that holds a View for the given viewtype
+     */
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -65,6 +73,13 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
 
     }
 
+    /**
+     * Binds the data at the specified position into the corresponding viewHolder
+     * @TODO not setup yet because Database cannot retrieve data properly yet
+     * @param holder The ViewHolder which should be updated to represent the contents of the
+     *        item at the given position in the data set.
+     * @param position The position of the item within the adapter's data set.
+     */
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         NoteItem noteItem = noteItems.get(position);
@@ -77,22 +92,32 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         }
     }
 
-
     @Override
     public int getItemCount() {
         return noteItems.size();
     }
 
-    // ViewHolder for text content
+
+    /**
+     * ViewHolder for text content within a note
+     */
     static class TextViewHolder extends RecyclerView.ViewHolder {
         // Define your text view holder components
         private EditText editText;
 
+        /**
+         * Constructs a TextViewHolder for text content
+         * @param itemView
+         */
         public TextViewHolder(View itemView) {
             super(itemView);
             editText = itemView.findViewById(R.id.edit_text_note_text);
         }
 
+        /**
+         * Binds text content from a NoteItem to the EditText
+         * @param noteItem
+         */
         public void bind(NoteItem noteItem) {
             // Assuming NoteItem has a method to get text content
             editText.setText(noteItem.getContent());
@@ -100,16 +125,26 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         }
     }
 
-    // ViewHolder for image content
+    /**
+     * ViewHolder for image content within a note
+     */
     static class ImageViewHolder extends RecyclerView.ViewHolder {
         // Define your image view holder components
         private ImageView imageView;
 
+        /**
+         * Constructs an ImageViewHolder for the image content
+         * @param itemView
+         */
         public ImageViewHolder(View itemView) {
             super(itemView);
             imageView = itemView.findViewById(R.id.image_view_note_image);
         }
 
+        /**
+         * Binds the image content from a NoteItem to the imageview
+         * @param noteItem
+         */
         public void bind(NoteItem noteItem) {
             /*
             // Assuming NoteItem has a method to get image URI or resource ID

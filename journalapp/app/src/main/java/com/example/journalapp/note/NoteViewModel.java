@@ -44,4 +44,55 @@ public class NoteViewModel extends AndroidViewModel {
     public LiveData<List<Note>> getAllNoteWhereTitleDateDescContains(String string) {
         return noteRepository.getAllNoteWhereTitleDateDescContains(string);
     }
+
+    // ========================================
+    // New NoteItem Functions
+    // ========================================
+    /**
+     * Inserts a NoteItemEntity into the database.
+     *
+     * @param noteItem The NoteItemEntity to be inserted.
+     */
+    public void insertNoteItem(NoteItemEntity noteItem) {
+        noteRepository.insertNoteItem(noteItem);
+    }
+
+    /**
+     * Updates a NoteItemEntity in the database.
+     *
+     * @param noteItem The NoteItemEntity to be updated.
+     */
+    public void updateNoteItem(NoteItemEntity noteItem) {
+        noteRepository.updateNoteItem(noteItem);
+    }
+
+    /**
+     * Deletes a NoteItemEntity from the database.
+     *
+     * @param noteItem The NoteItemEntity to be deleted.
+     */
+    public void deleteNoteItem(NoteItemEntity noteItem) {
+        noteRepository.deleteNoteItem(noteItem);
+    }
+
+    /**
+     * Retrieves all NoteItemEntity objects for a specific note, ordered by their order index.
+     *
+     * @param noteId The ID of the note whose items are to be retrieved.
+     * @return LiveData containing a list of NoteItemEntity objects.
+     */
+    public LiveData<List<NoteItemEntity>> getNoteItemsForNote(String noteId) {
+        return noteRepository.getNoteItemsForNote(noteId);
+    }
+
+    // Method to insert a full note with items
+    /**
+     * Inserts a full note with its items into the database.
+     *
+     * @param note The Note object to be inserted.
+     * @param noteItems The list of NoteItemEntity objects to be inserted.
+     */
+    public void insertFullNote(Note note, List<NoteItemEntity> noteItems) {
+        noteRepository.insertFullNote(note, noteItems);
+    }
 }

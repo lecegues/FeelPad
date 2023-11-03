@@ -179,11 +179,13 @@ public class NewNoteActivity extends AppCompatActivity {
      * in the database
      */
     private void setNewNote() {
+
+        // @TODO need to change database insertion
         Date currentDate = new Date();
         note = new Note("", "", currentDate.toString());
         noteRepository.insertNote(note);
 
-        // Initialize your list of note items with a default text item
+        // Initialize the contents of noteItems beginning with a single EditText
         noteItems = new ArrayList<>();
         noteItems.add(new NoteItem(NoteItem.ItemType.TEXT, "", null)); // Empty text for the user to start typing
 
@@ -195,9 +197,6 @@ public class NewNoteActivity extends AppCompatActivity {
         noteContentRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         noteContentRecyclerView.setAdapter(noteAdapter);
 
-        // Request focus for the EditText in the first item of the RecyclerView
-        // This method needs to be implemented in your NoteAdapter class
-        // noteAdapter.requestFocusForPosition(0);
     }
 
     /**

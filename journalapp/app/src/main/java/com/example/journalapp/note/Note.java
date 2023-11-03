@@ -25,7 +25,9 @@ public class Note {
     private String title;
 
     @ColumnInfo(name = "description")
-    private String description;
+    private String description; // not to be used anymore
+
+
 
     @ColumnInfo(name = "create_date")
     private String createdDate;

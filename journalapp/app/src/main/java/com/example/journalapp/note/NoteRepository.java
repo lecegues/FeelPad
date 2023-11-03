@@ -109,4 +109,44 @@ public class NoteRepository {
     public void deleteNote(Note note) {
         NoteDatabase.databaseWriteExecutor.execute(() -> noteDao.deleteNote(note));
     }
+
+    // =================================
+    // NoteItemEntity Operations
+    // =================================
+
+    public void insertNoteItem(NoteItemEntity noteItem){
+        NoteDatabase.databaseWriteExecutor.execute(() -> noteDao.insertNoteItem(noteItem));
+    }
+
+    public void updateNoteItem(NoteItemEntity noteItem){
+        NoteDatabase.databaseWriteExecutor.execute(() -> noteDao.updateNoteItem(noteItem));
+    }
+
+    public void deleteNoteItem(NoteItemEntity noteItem){
+        NoteDatabase.databaseWriteExecutor.execute(() -> noteDao.deleteNoteItem(noteItem));
+    }
+
+    /**
+     * Retrieves all NoteItemEntity objects for a specific note, ordered by their order index.
+     *
+     * @param noteId The ID of the note whose items are to be retrieved.
+     * @return LiveData containing a list of NoteItemEntity objects.
+     */
+    public LiveData<List<NoteItemEntity>> getNoteItemsForNote(String noteId) {
+        return noteDao.getNoteItemsForNote(noteId);
+    }
+
+    // You may also want to add a method to insert a full note with items
+    /**
+     * Inserts a full note with its items into the database.
+     *
+     * @param note The Note object to be inserted.
+     * @param noteItems The list of NoteItemEntity objects to be inserted.
+     */
+    public void insertFullNote(Note note, List<NoteItemEntity> noteItems) {
+        NoteDatabase.databaseWriteExecutor.execute(() -> {
+            noteDao.insertFullNote(note, noteItems);
+        });
+    }
+
 }
