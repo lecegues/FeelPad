@@ -125,6 +125,9 @@ public interface NoteDao {
     @Query("SELECT * FROM note_items WHERE note_id = :noteId ORDER BY order_index")
     LiveData<List<NoteItemEntity>> getNoteItemsForNote(String noteId);
 
+    @Query("SELECT * FROM note_items WHERE note_id = :noteId ORDER BY order_index")
+    List<NoteItemEntity> getNoteItemsForNoteSync(String noteId);
+
     // You may also need a transaction to insert a full note with items
     @Transaction
     default void insertFullNote(Note note, List<NoteItemEntity> noteItems) {

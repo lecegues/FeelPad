@@ -1,5 +1,7 @@
 package com.example.journalapp;
 
+import static com.example.journalapp.utility.ConversionUtil.convertNoteItemEntitiesToNoteItems;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
@@ -20,6 +22,7 @@ import com.example.journalapp.newnote.NoteItem;
 import com.example.journalapp.note.Note;
 import com.example.journalapp.note.NoteItemEntity;
 import com.example.journalapp.note.NoteRepository;
+import com.example.journalapp.utility.ConversionUtil;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -68,6 +71,7 @@ public class NewNoteActivity extends AppCompatActivity {
         // Initialize UI Widgets & set current date
         initWidgets();
         initOptionsMenu();
+        initRecyclerView();
 
         // Check if the received intent is for a new note or existing note
         Intent intent = getIntent();
@@ -175,6 +179,20 @@ public class NewNoteActivity extends AppCompatActivity {
         });
     }
 
+    private void initRecyclerView(){
+
+        // First initialize the noteItems variable
+        noteItems = new ArrayList<>();
+
+        // Initialize the RecyclerView and Adapter
+        RecyclerView noteContentRecyclerView = findViewById(R.id.recycler_view_notes); // Make sure this ID matches your layout
+        noteAdapter = new NoteAdapter(noteItems);
+
+        // Set up the RecyclerView
+        noteContentRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        noteContentRecyclerView.setAdapter(noteAdapter);
+    }
+
     /**
      * Initialize a new note with a date and store it
      * in the database
@@ -186,17 +204,8 @@ public class NewNoteActivity extends AppCompatActivity {
         note = new Note("", "", currentDate.toString());
         noteRepository.insertNote(note);
 
-        // Initialize the contents of noteItems beginning with a single EditText
-        noteItems = new ArrayList<>();
-        noteItems.add(new NoteItem(NoteItem.ItemType.TEXT, "", null, 0)); // Empty text for the user to start typing
-
-        // Initialize the RecyclerView and Adapter
-        RecyclerView noteContentRecyclerView = findViewById(R.id.recycler_view_notes); // Make sure this ID matches your layout
-        NoteAdapter noteAdapter = new NoteAdapter(noteItems);
-
-        // Set up the RecyclerView
-        noteContentRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        noteContentRecyclerView.setAdapter(noteAdapter);
+        // Initialize the contents of noteItems as a single EditText
+        noteItems.add(new NoteItem(NoteItem.ItemType.TEXT,null,"", null, 0)); // Empty text for the user to start typing
 
     }
 
@@ -205,29 +214,32 @@ public class NewNoteActivity extends AppCompatActivity {
      * from database
      */
     private void setExistingNote(String note_id) {
+        // Observe the LiveData returned by the repository for note items
+        noteRepository.getNoteItemsForNote(note_id).observe(this, noteItemEntities -> {
+            // This code will run when the note items are loaded or when they change.
+            // Convert NoteItemEntity to NoteItem
+            List<NoteItem> newNoteItems = convertNoteItemEntitiesToNoteItems(noteItemEntities);
+            // Update the shared noteItems list
+            noteItems.clear();
+            noteItems.addAll(newNoteItems);
+            // Notify the adapter of the change
+            noteAdapter.notifyDataSetChanged();
+        });
 
-        // use executorService for separate background thread instead of using UI thread
-        // Note: not seen but execute has a 'Runnable' parameter that tells executorService
-        //       to execute code inside the run() method; however we are using a lambda function
+        // Retrieve the note using the id on a background thread
         executorService.execute(() -> {
-
-            // retrieve note using id database operations
-            try {
-                note = noteRepository.getNoteById(note_id);
+            Note fetchedNote = noteRepository.getNoteById(note_id);
+            if (fetchedNote != null) {
+                // Use UI Thread to update UI with the fetched note
+                runOnUiThread(() -> {
+                    note = fetchedNote;
+                    titleEditText.setText(note.getTitle());
+                    // You may also want to update the description or other fields if necessary.
+                });
+            } else {
+                // Handle the case where the note is null (e.g., not found in the database)
+                runOnUiThread(this::finish);
             }
-
-            // if invalid note_id, then just close the note
-            // @TODO improper handle of error
-            catch (Exception e) {
-                finish();
-            }
-
-
-            // Use UI Thread to update UI
-            runOnUiThread(() -> {
-                // Populate UI with existing note
-                titleEditText.setText(note.getTitle());
-            });
         });
     }
 
@@ -247,26 +259,54 @@ public class NewNoteActivity extends AppCompatActivity {
      *
      */
     public void saveNoteContent() {
-        Log.d("TextWatcher", "Saving the NoteContents"); // change log
+        executorService.execute(() -> {
+            // Get the current list of note items from the database synchronously
+            List<NoteItemEntity> currentNoteItems = noteRepository.getNoteItemsForNoteSync(note.getId());
 
-        // Convert NoteItem to NoteItemEntity
-        List<NoteItemEntity> noteItemEntities = new ArrayList<>();
-        for (NoteItem noteItem : noteItems) {
-            noteItemEntities.add(new NoteItemEntity(
-                    null, // let the database generate the ID
-                    note.getId(), // the ID of the note
-                    noteItem.getType().ordinal(), // convert enum to int
-                    noteItem.getContent(),
-                    noteItem.getOrderIndex() // you need to manage the order index in your adapter
-            ));
-            Log.e("Check Content", noteItem.getContent());
-        }
+            // Create a list to hold new or updated entities
+            List<NoteItemEntity> noteItemEntitiesToSave = new ArrayList<>();
 
-        // Save the full note with items to the database
-        noteRepository.insertFullNote(note, noteItemEntities);
+            // Iterate over the local note items
+            for (NoteItem noteItem : noteItems) {
+                // Check if the NoteItem matches an existing NoteItemEntity
+                NoteItemEntity matchingEntity = null;
+                for (NoteItemEntity entity : currentNoteItems) {
+                    if (entity.getItemId().equals(noteItem.getItemId())) {
+                        matchingEntity = entity;
+                        break;
+                    }
+                }
 
+                if (matchingEntity != null) {
+                    Log.e("Saving", "Found a matching Entity. Updating said Entity");
+                    // Update the existing entity with new content
+                    matchingEntity.setContent(noteItem.getContent());
+                    matchingEntity.setOrderIndex(noteItem.getOrderIndex());
+                    noteRepository.updateNoteItem(matchingEntity); // Update immediately
+                } else {
+                    Log.e("Saving", "Did not find matching Entity. Saving a new Entity");
+                    // Create a new entity with the ID from NoteItem
+                    NoteItemEntity newEntity = new NoteItemEntity(
+                            noteItem.getItemId(), // Use the ID from NoteItem
+                            note.getId(), // The ID of the note
+                            noteItem.getType().ordinal(), // Convert enum to int
+                            noteItem.getContent(),
+                            noteItem.getOrderIndex()
+                    );
+                    noteRepository.insertNoteItem(newEntity); // Insert immediately
+                }
+            }
 
+            // Inform the user that the note has been saved
+            // This must be done on the main thread since it interacts with the UI
+            runOnUiThread(() -> Toast.makeText(NewNoteActivity.this, "Note saved", Toast.LENGTH_SHORT).show());
+        });
     }
+
+
+
+
+
 
     /**
      * Remove the note from the database if there is, no
