@@ -1,7 +1,7 @@
-package com.example.journalapp.utility;
+package com.example.journalapp.utils;
 
-import com.example.journalapp.newnote.NoteItem;
-import com.example.journalapp.note.NoteItemEntity;
+import com.example.journalapp.ui.note.NoteItem;
+import com.example.journalapp.database.entity.NoteItemEntity;
 
 import java.util.ArrayList;
 import java.util.List;

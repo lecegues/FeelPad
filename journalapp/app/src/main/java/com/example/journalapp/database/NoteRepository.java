@@ -1,11 +1,11 @@
-package com.example.journalapp.note;
+package com.example.journalapp.database;
 
 import android.app.Application;
 
 import androidx.lifecycle.LiveData;
 
-import com.example.journalapp.database.NoteDao;
-import com.example.journalapp.database.NoteDatabase;
+import com.example.journalapp.database.entity.Note;
+import com.example.journalapp.database.entity.NoteItemEntity;
 
 import java.util.List;
 

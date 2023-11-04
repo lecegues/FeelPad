@@ -6,8 +6,8 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
-import com.example.journalapp.note.Note;
-import com.example.journalapp.note.NoteItemEntity;
+import com.example.journalapp.database.entity.Note;
+import com.example.journalapp.database.entity.NoteItemEntity;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

@@ -9,8 +9,8 @@ import androidx.room.Query;
 import androidx.room.Transaction;
 import androidx.room.Update;
 
-import com.example.journalapp.note.Note;
-import com.example.journalapp.note.NoteItemEntity;
+import com.example.journalapp.database.entity.Note;
+import com.example.journalapp.database.entity.NoteItemEntity;
 
 import java.util.List;
 

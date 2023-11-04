@@ -1,14 +1,11 @@
-package com.example.journalapp.newnote;
+package com.example.journalapp.ui.note;
 
-import android.content.Context;
-import android.net.Uri;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 
@@ -16,15 +13,13 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.journalapp.R;
-
-import org.w3c.dom.Text;
+import com.example.journalapp.ui.note.NoteItem;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 
 /**
  * Adapter for managing the display of different types of items within a note.

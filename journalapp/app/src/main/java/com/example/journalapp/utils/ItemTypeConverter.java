@@ -1,8 +1,8 @@
-package com.example.journalapp.note;
+package com.example.journalapp.utils;
 
 import androidx.room.TypeConverter;
 
-import com.example.journalapp.newnote.NoteItem;
+import com.example.journalapp.ui.note.NoteItem;
 
 /**
  * Type Converters
