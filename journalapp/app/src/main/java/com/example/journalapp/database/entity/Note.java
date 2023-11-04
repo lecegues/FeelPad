@@ -10,8 +10,8 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * An entity class used to create a Room database table
- * Represents a 'note' entity in the table
+ * An entity class used to create a Room database table called note_table
+ * Represents an individual notes' metadata
  */
 @Entity(tableName = "note_table")
 public class Note {
@@ -39,57 +39,27 @@ public class Note {
         this.createdDate = createdDate;
     }
 
-    /**
-     * Getter for unique ID of a note
-     *
-     * @return integer ID of a note
-     */
     @NonNull
     public String getId() {
         return id;
     }
 
-    /**
-     * Setter for unique ID of a note
-     *
-     * @param id the ID to set
-     */
     public void setId(@NonNull String id) {
         this.id = id;
     }
 
-    /**
-     * Getter for title of a note
-     *
-     * @return String title of a note
-     */
     public String getTitle() {
         return title;
     }
 
-    /**
-     * Setter for title of a note
-     *
-     * @param title Title to set
-     */
     public void setTitle(@Nullable String title) {
         this.title = title;
     }
 
-    /**
-     * Getter for the date the note was created
-     *
-     * @return String creation date of the note
-     */
     public String getCreatedDate() {
         return createdDate;
     }
 
-    /**
-     * Setter to change the date when note was created
-     *
-     * @param createDate The date that the note was created
-     */
     public void setCreatedDate(String createDate) {
         this.createdDate = createDate;
     }

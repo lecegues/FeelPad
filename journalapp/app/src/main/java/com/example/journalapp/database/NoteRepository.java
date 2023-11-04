@@ -105,21 +105,33 @@ public class NoteRepository {
     // NoteItemEntity Operations
     // =================================
 
+    /**
+     * Insert a new NoteItemEntity into the database
+     * @param noteItem
+     */
     public void insertNoteItem(NoteItemEntity noteItem){
         NoteDatabase.databaseWriteExecutor.execute(() -> noteDao.insertNoteItem(noteItem));
     }
 
+    /**
+     * Updates an existing NoteItemEntity to the database
+     * @param noteItem
+     */
     public void updateNoteItem(NoteItemEntity noteItem){
         NoteDatabase.databaseWriteExecutor.execute(() -> noteDao.updateNoteItem(noteItem));
     }
 
+    /**
+     * Deletes a NoteItemEntity from the database
+     * @param noteItem
+     */
     public void deleteNoteItem(NoteItemEntity noteItem){
         NoteDatabase.databaseWriteExecutor.execute(() -> noteDao.deleteNoteItem(noteItem));
     }
 
     /**
-     * Retrieves all NoteItemEntity objects for a specific note, ordered by their order index.
-     *
+     * Retrieves all NoteItemEntity objects for a specific note ordered by the order_index
+     * This is asynchronous and can be done using the main ui thread.
      * @param noteId The ID of the note whose items are to be retrieved.
      * @return LiveData containing a list of NoteItemEntity objects.
      */
@@ -127,14 +139,18 @@ public class NoteRepository {
         return noteDao.getNoteItemsForNote(noteId);
     }
 
-
+    /**
+     * Retrieves all NoteItemEntity objects for a specific note ordered by the order_index
+     * This is synchronous, so it must be done using a background thread.
+     * @param noteId
+     * @return
+     */
     public List<NoteItemEntity> getNoteItemsForNoteSync(String noteId){
         return noteDao.getNoteItemsForNoteSync(noteId);
     }
 
-    // You may also want to add a method to insert a full note with items
     /**
-     * Inserts a full note with its items into the database.
+     * Inserts a full note along with its associated items into the database in a single transaction
      *
      * @param note The Note object to be inserted.
      * @param noteItems The list of NoteItemEntity objects to be inserted.

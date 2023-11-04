@@ -11,11 +11,16 @@ import com.example.journalapp.utils.ItemTypeConverter;
 
 import java.util.UUID;
 
+/**
+ * An entity class used to create a Room database table called note_items
+ * Represents an individual Notes` contents.
+ * A one-to-many relationship between Notes and NoteItems.
+ */
 @Entity(tableName="note_items",
         foreignKeys = @ForeignKey(entity= Note.class,
                 parentColumns = "id",
                 childColumns = "note_id",
-                onDelete = ForeignKey.CASCADE))
+                onDelete = ForeignKey.CASCADE)) // Cascade will delete all related note items if its deleted
 public class NoteItemEntity {
 
     @PrimaryKey
@@ -36,6 +41,14 @@ public class NoteItemEntity {
     @ColumnInfo(name="order_index")
     private int orderIndex; // to maintain order of items within a note
 
+    /**
+     * Constructor to create a new NoteItemEntity
+     * @param itemId String NoteItemEntity's ID. Can be passed from local NoteItem variable or generated automatically.
+     * @param noteId String noteId that links every NoteItemEntity to a NoteEntity
+     * @param type item type converter to an integer from an enum
+     * @param content String content of the item -- depends on NoteItem type
+     * @param orderIndex the order in which the noteItem belongs in the Recyclerview. Loaded in said order.
+     */
     public NoteItemEntity(String itemId, String noteId, int type, String content, int orderIndex) {
         if (itemId == null) {
             this.itemId = UUID.randomUUID().toString(); // Generate a new ID only if none is provided

@@ -102,22 +102,50 @@ public interface NoteDao {
     // Normal NoteItem CRUD
     // ==============================
 
+    /**
+     * Inserts a new NoteItemEntity into the database
+     * @param noteItem
+     */
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     void insertNoteItem(NoteItemEntity noteItem);
 
+    /**
+     * Updates an existing NoteItemEntity in the database
+     * @param noteItem
+     */
     @Update
     void updateNoteItem(NoteItemEntity noteItem);
 
+    /**
+     * Deletes a NoteItemEntity from the datbabase
+     * @param noteItem
+     */
     @Delete
     void deleteNoteItem(NoteItemEntity noteItem);
 
+    /**
+     * Retrieves all NoteItemEntity objects for a specific note ordered by the order_index
+     * This is asynchronous and can be done using the main ui thread.
+     * @param noteId
+     * @return
+     */
     @Query("SELECT * FROM note_items WHERE note_id = :noteId ORDER BY order_index")
     LiveData<List<NoteItemEntity>> getNoteItemsForNote(String noteId);
 
+    /**
+     * Retrieves all NoteItemEntity objects for a specific note ordered by the order_index
+     * This is synchronous, so it must be done using a background thread.
+     * @param noteId
+     * @return
+     */
     @Query("SELECT * FROM note_items WHERE note_id = :noteId ORDER BY order_index")
     List<NoteItemEntity> getNoteItemsForNoteSync(String noteId);
 
-    // You may also need a transaction to insert a full note with items
+    /**
+     * Inserts a full note along with its associated items into the database in a single transaction
+     * @param note
+     * @param noteItems
+     */
     @Transaction
     default void insertFullNote(Note note, List<NoteItemEntity> noteItems) {
         // Insert the note
