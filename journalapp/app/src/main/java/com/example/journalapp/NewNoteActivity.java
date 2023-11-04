@@ -34,12 +34,13 @@ import java.util.concurrent.TimeUnit;
 
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.subjects.PublishSubject;
 
 /**
  * Activity representing a single note page
  * Contains creation and saving of a note
  */
-public class NewNoteActivity extends AppCompatActivity {
+public class NewNoteActivity extends AppCompatActivity implements NoteAdapter.OnNoteItemChangeListener {
     private EditText titleEditText;
     private NoteRepository noteRepository;
     private Note note;
@@ -55,6 +56,8 @@ public class NewNoteActivity extends AppCompatActivity {
     private RecyclerView noteContentRecyclerView;
     private NoteAdapter noteAdapter;
     private List<NoteItem> noteItems;
+    private PublishSubject<String> noteContentChangeSubject = PublishSubject.create();
+
 
 
 
@@ -191,6 +194,13 @@ public class NewNoteActivity extends AppCompatActivity {
         // Set up the RecyclerView
         noteContentRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         noteContentRecyclerView.setAdapter(noteAdapter);
+        noteAdapter.setOnNoteItemChangeListener(this);
+    }
+
+    // Callback Method
+    @Override
+    public void onNoteItemContentChanged(){
+        saveNoteContent();
     }
 
     /**
