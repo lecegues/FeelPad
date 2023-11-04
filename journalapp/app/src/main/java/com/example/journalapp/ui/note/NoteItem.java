@@ -18,8 +18,8 @@ public class NoteItem {
     }
     private String itemId; // unique identifier
     private ItemType type; // type of the note item (Enum)
-    private String content; // for text
-    private Uri imageUri; // for images
+    private String content; // can store either text or string representation of the URI
+
     private int orderIndex; // keep track of order in a list
 
     /**
@@ -27,10 +27,9 @@ public class NoteItem {
      * @param type
      * @param itemId
      * @param content
-     * @param imageUri
      * @param orderIndex
      */
-    public NoteItem(ItemType type, String itemId, String content, Uri imageUri, int orderIndex){
+    public NoteItem(ItemType type, String itemId, String content, int orderIndex){
         this.type = type;
         if (itemId == null) {
             this.itemId = UUID.randomUUID().toString(); // Generate a new ID only if none is provided
@@ -38,7 +37,6 @@ public class NoteItem {
             this.itemId = itemId;
         }
         this.content = content;
-        this.imageUri = imageUri;
         this.orderIndex = orderIndex;
         Log.e("Note created", "itemId = " + itemId);
     }
@@ -92,19 +90,27 @@ public class NoteItem {
     }
 
     /**
-     * Getter for imageUri (Images only)
+     * Getter for item content as an ImageURI
      * @return
      */
-    public Uri getImageUri() {
-        return imageUri;
+    public Uri getContentImageUri(){
+        if (this.type == ItemType.IMAGE && this.content != null){
+            return Uri.parse(this.content);
+        }
+        return null;
     }
 
     /**
-     * Setter for imageUri (images only)
+     * Setter for item content from URI to string
      * @param imageUri
      */
-    public void setImageUri(Uri imageUri) {
-        this.imageUri = imageUri;
+    public void setContentImageUri(Uri imageUri){
+        if (imageUri != null){
+            this.content = imageUri.toString();
+        }
+        else{
+            this.content = null;
+        }
     }
 
     /**

@@ -47,7 +47,7 @@ public class ConversionUtil {
             NoteItem.ItemType itemType = NoteItem.ItemType.values()[entity.getType()];
 
             // Create a new NoteItem with the data from NoteItemEntity
-            noteItems.add(new NoteItem(itemType,entity.getItemId(), entity.getContent(), null, entity.getOrderIndex()));
+            noteItems.add(new NoteItem(itemType,entity.getItemId(), entity.getContent(),entity.getOrderIndex()));
         }
         return noteItems;
     }
