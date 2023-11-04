@@ -17,7 +17,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.journalapp.R;
 
+import org.w3c.dom.Text;
+
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 /**
  * Adapter for managing the display of different types of items within a note.
@@ -25,6 +32,17 @@ import java.util.List;
  */
 public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
     private List<NoteItem> noteItems;
+    private OnNoteItemChangeListener onNoteItemChangeListener;
+
+    // Interface for callback
+    public interface OnNoteItemChangeListener {
+        void onNoteItemContentChanged();
+    }
+
+    // Setter for the listener
+    public void setOnNoteItemChangeListener(OnNoteItemChangeListener listener){
+        this.onNoteItemChangeListener = listener;
+    }
 
     /**
      * Constructs a NoteAdapter with a list of Noteitems
@@ -57,7 +75,7 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         if (viewType == NoteItem.ItemType.TEXT.ordinal()){
             View view = LayoutInflater.from(parent.getContext())
                     .inflate(com.example.journalapp.R.layout.item_note_text, parent, false);
-            return new TextViewHolder(view); // @TODO custom viewholder class
+            return new TextViewHolder(view, onNoteItemChangeListener); // @TODO custom viewholder class
         }
 
         // if image
@@ -94,6 +112,8 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         }
     }
 
+
+
     /**
      * Deals with views that are being recycled
      * We want to delete the TextWatcher
@@ -119,15 +139,20 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
     static class TextViewHolder extends RecyclerView.ViewHolder {
         // Define your text view holder components
         private EditText editText;
-        private TextWatcher textWatcher;
+        private CompositeDisposable compositeDisposable = new CompositeDisposable();
+        private static final long SAVE_DELAY = 1000; // Delay for 1 second before auto-saving
+        private NoteItem currentNoteItem;
+        private OnNoteItemChangeListener listener;
 
         /**
          * Constructs a TextViewHolder for text content
          * @param itemView
          */
-        public TextViewHolder(View itemView) {
+        public TextViewHolder(View itemView, OnNoteItemChangeListener listener) {
             super(itemView);
+            this.listener = listener;
             editText = itemView.findViewById(R.id.edit_text_note_text);
+
         }
 
         /**
@@ -135,46 +160,65 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
          * @param noteItem
          */
         public void bind(NoteItem noteItem) {
-
-            // First remove any previous textWatcher
-            clearTextWatcher();
-
-            // Set the content if there is content
+            currentNoteItem = noteItem;
             editText.setText(noteItem.getContent());
 
-            // Create a new textWatcher
-            textWatcher = new TextWatcher(){
+            // Dispose previous subscription if any
+            compositeDisposable.clear();
+
+            // Create an Observable for text changes
+            Observable<String> titleChangedObservable = Observable.create(emitter -> editText.addTextChangedListener(new TextWatcher() {
 
                 @Override
                 public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
+                    // actions before text is changed
                 }
 
                 @Override
                 public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                    // Update NoteItem content as the user types stuff
-                    noteItem.setContent(charSequence.toString());
+                    emitter.onNext(charSequence.toString()); // emitter is notified of an update
                 }
 
                 @Override
                 public void afterTextChanged(Editable editable) {
-                    // Can implement debouncing here
+                    // actions after text is changed
                 }
-            };
+            }));
 
-            // Attach textWatcher to EditText
-            editText.addTextChangedListener(textWatcher);
+            // Sets debounce time (ms) for title changes
+            /* 5 seconds */
+            Observable<String> titleObservable = titleChangedObservable
+                    .debounce(SAVE_DELAY, TimeUnit.MILLISECONDS);
+
+
+            // Subscribe to observables to trigger a save to database
+            compositeDisposable.addAll(
+                    titleObservable.subscribe(this::saveNoteContents));
         }
 
         /**
          * Clear the TextWatcher from the TextViewHolder
          */
         public void clearTextWatcher(){
-            if (textWatcher != null){
-                editText.removeTextChangedListener(textWatcher);
-                textWatcher = null;
+            if (compositeDisposable != null){
+                compositeDisposable.clear();
             }
         }
+
+        public void saveNoteContents(String content){
+            // Save to noteItem
+            if (currentNoteItem != null){
+                currentNoteItem.setContent(content);
+
+                // notify the activity that content has changed
+                if (listener != null){
+                    listener.onNoteItemContentChanged();
+                }
+            }
+
+
+        }
+
     }
 
     /**
