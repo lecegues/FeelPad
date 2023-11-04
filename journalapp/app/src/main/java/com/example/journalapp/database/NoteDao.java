@@ -38,7 +38,7 @@ public interface NoteDao {
     @Query("SELECT * FROM note_table ORDER BY create_date DESC")
     LiveData<List<Note>> getAllNotesOrderByCreatedDateDesc();
 
-    /**
+    /** @TODO removed Description. Must be fixed to check all EditTexts
      * Select a distinct record from the database that contains the provided string in the
      * title, description, or date.
      *
@@ -47,7 +47,6 @@ public interface NoteDao {
      */
     @Query("SELECT DISTINCT * FROM note_table " +
             "WHERE title LIKE '%' || :string || '%' " +
-            "OR description LIKE '%' || :string || '%' " +
             "OR create_date LIKE '%' || :string || '%'")
     LiveData<List<Note>> getAllNotesWhereTitleDateDescContains(String string);
 
@@ -90,16 +89,6 @@ public interface NoteDao {
      */
     @Query("UPDATE note_table SET title = :providedTitle WHERE id = :noteId")
     void updateNoteTitle(String providedTitle, String noteId);
-
-    /**
-     * Update the description of note with id
-     *
-     * @param noteId              the notes id
-     * @param providedDescription The new description
-     */
-    @Query("UPDATE note_table SET description = :providedDescription WHERE id = :noteId")
-    void updateNoteDescription(String providedDescription, String noteId);
-
 
     /**
      * Deletes a note from the database

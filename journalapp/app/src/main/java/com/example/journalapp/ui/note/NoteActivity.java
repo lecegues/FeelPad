@@ -37,24 +37,20 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable;
  * Contains creation and saving of a note
  */
 public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNoteItemChangeListener {
+
+    // Note Component Variables
     private EditText titleEditText;
-    private NoteRepository noteRepository;
-    private Note note;
-    private final CompositeDisposable compositeDisposable = new CompositeDisposable();
 
-    /* ExecutorService-- must be used because database operations can
-       take a non-trivial amount of time and block the main UI thread,
-       causing an error*/
-    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
-
-
-    // RecyclerView stuff
+    // Note Contents Variables
     private RecyclerView noteContentRecyclerView;
     private NoteAdapter noteAdapter;
     private List<NoteItem> noteItems;
 
-
-
+    // Note Database Variables
+    private NoteRepository noteRepository;
+    private Note note;
+    private final CompositeDisposable compositeDisposable = new CompositeDisposable();
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor(); // thread manager
 
 
     /**
@@ -75,18 +71,20 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
         // Check if the received intent is for a new note or existing note
         Intent intent = getIntent();
 
-        if (intent.hasExtra("note_id")) { // existing note
-
-            // retrieve note_id
+        if (intent.hasExtra("note_id")) {
+            // Existing Note: retrieve note_id and set up existing note
             String note_id = intent.getStringExtra("note_id");
-
-            // retrieve existing note from database using noteId and populate the UI
             setExistingNote(note_id);
-        } else { // new note
+
+        } else {
+            // New Note: create note_id and create new note
             setNewNote();
         }
-
     }
+
+    // ==============================
+    // REGION: UI Initialization
+    // ==============================
 
     /**
      * Initializes UI widgets, ViewModel, and set the edit text watcher with debouncing.
@@ -120,8 +118,8 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
         }));
 
         // Sets debounce time (ms) for title changes
-        /* 5 seconds */
-        int SAVE_DELAY = 1000;
+        /* 1 second */
+        int SAVE_DELAY = 500;
         Observable<String> titleObservable = titleChangedObservable
                 .debounce(SAVE_DELAY, TimeUnit.MILLISECONDS);
 
@@ -178,6 +176,10 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
         });
     }
 
+    /**
+     * Initialize the RecyclerView that represents a Note's contents
+     * Contents can include: EditTexts, ImageViews, etc.
+     */
     private void initRecyclerView(){
 
         // First initialize the noteItems variable
@@ -190,14 +192,12 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
         // Set up the RecyclerView
         noteContentRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         noteContentRecyclerView.setAdapter(noteAdapter);
-        noteAdapter.setOnNoteItemChangeListener(this);
+        noteAdapter.setOnNoteItemChangeListener(this); // notified to save if changes are made to noteItems
     }
 
-    // Callback Method
-    @Override
-    public void onNoteItemContentChanged(){
-        saveNoteContent();
-    }
+    // ==============================
+    // REGION: Setting up Note Data
+    // ==============================
 
     /**
      * Initialize a new note with a date and store it
@@ -205,9 +205,8 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
      */
     private void setNewNote() {
 
-        // @TODO need to change database insertion
         Date currentDate = new Date();
-        note = new Note("", "", currentDate.toString());
+        note = new Note("", currentDate.toString());
         noteRepository.insertNote(note);
 
         // Initialize the contents of noteItems as a single EditText
@@ -312,7 +311,13 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
 
 
 
-
+    /**
+     * This is called when the NoteAdapter notices changes made to noteItems
+     */
+    @Override
+    public void onNoteItemContentChanged(){
+        saveNoteContent();
+    }
 
     /**
      * Remove the note from the database if there is, no
@@ -321,11 +326,13 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
      * @param view The button view that triggers the save operation
      */
     public void exitNote(View view) {
-        saveNoteContent();
-        String description = note.getDescription();
         String title = note.getTitle();
-        if (description.isEmpty() && title.isEmpty()) {
+        if ( (noteItems.size() == 1 && noteItems.get(0).getContent() == "") && title.isEmpty()) {
+            Log.e("Exiting note", "Deleting note");
             noteRepository.deleteNote(note);
+        }
+        else{
+            saveNoteContent();
         }
         finish();
     }

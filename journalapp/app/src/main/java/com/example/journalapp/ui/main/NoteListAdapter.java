@@ -54,10 +54,9 @@ public class NoteListAdapter extends ListAdapter<Note, NoteViewHolder> {
     public void onBindViewHolder(NoteViewHolder holder, int position) {
         Note current = getItem(position);
         String title = current.getTitle();
-        String desc = current.getDescription();
+        // String desc = current.getDescription(); // @TODO ViewHolder needs to be able to hold contents of RecyclerView. Maybe like a snapshot of the first few contents of Recyclerview?
         Log.d("NoteListAdapter", "onBindViewHolder title: " + title);
-        Log.d("NoteListAdapter", "onBindViewHolder desc: " + desc);
-        holder.bind(title, desc);
+        holder.bind(title);
 
 
         /**

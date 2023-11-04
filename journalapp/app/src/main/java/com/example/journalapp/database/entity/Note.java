@@ -24,11 +24,6 @@ public class Note {
     @ColumnInfo(name = "title")
     private String title;
 
-    @ColumnInfo(name = "description")
-    private String description; // not to be used anymore
-
-
-
     @ColumnInfo(name = "create_date")
     private String createdDate;
 
@@ -36,13 +31,11 @@ public class Note {
      * Constructor to create a new Note instance
      *
      * @param title       String representing title of the note
-     * @param description String representing the description of the note
      * @param createdDate String representing when the note was created
      */
-    public Note(String title, String description, String createdDate) {
+    public Note(String title, String createdDate) {
         this.id = UUID.randomUUID().toString();
         this.title = title;
-        this.description = description;
         this.createdDate = createdDate;
     }
 
@@ -84,24 +77,6 @@ public class Note {
     }
 
     /**
-     * Getter for description of the note
-     *
-     * @return String description of a note
-     */
-    public String getDescription() {
-        return description;
-    }
-
-    /**
-     * Setter for description of a note
-     *
-     * @param description String description to set
-     */
-    public void setDescription(@Nullable String description) {
-        this.description = description;
-    }
-
-    /**
      * Getter for the date the note was created
      *
      * @return String creation date of the note
@@ -130,6 +105,6 @@ public class Note {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Note note = (Note) o;
-        return id.equals(note.id) && Objects.equals(title, note.title) && Objects.equals(description, note.description) && Objects.equals(createdDate, note.createdDate);
+        return id.equals(note.id) && Objects.equals(title, note.title) && Objects.equals(createdDate, note.createdDate);
     }
 }
