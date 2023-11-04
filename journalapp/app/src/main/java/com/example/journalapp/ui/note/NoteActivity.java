@@ -2,7 +2,13 @@ package com.example.journalapp.ui.note;
 
 import static com.example.journalapp.utils.ConversionUtil.convertNoteItemEntitiesToNoteItems;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -12,7 +18,13 @@ import android.widget.EditText;
 import android.widget.PopupMenu;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -21,6 +33,10 @@ import com.example.journalapp.database.entity.Note;
 import com.example.journalapp.database.entity.NoteItemEntity;
 import com.example.journalapp.database.NoteRepository;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -51,6 +67,38 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
     private Note note;
     private final CompositeDisposable compositeDisposable = new CompositeDisposable();
     private final ExecutorService executorService = Executors.newSingleThreadExecutor(); // thread manager
+
+    // Permission Variables
+    private static final int REQUEST_STORAGE_PERMISSION = 1;
+
+    // Image Handling Variables
+    // Special member variable used to launch activities that expect a result
+    private final ActivityResultLauncher<String> mGetContent =
+            registerForActivityResult( new ActivityResultContracts.GetContent(), uri -> {
+                try{
+                    // Handle returned Uri's
+
+                    // First, save to local storage
+                    Uri localUri = saveImageToInternalStorage(uri);
+
+                    // Create a new imageView and pass the uri to the adapter
+                    noteItems.add(new NoteItem(NoteItem.ItemType.IMAGE,null,localUri.toString(), noteItems.size())); // @TODO how to manage orderIndex?
+
+                    // Notify the adapter that an item has been added
+                    // noteAdapter.notifyItemInserted(noteItems.size() - 1);
+
+
+                } catch (Exception e){
+                    e.printStackTrace();
+                    Toast.makeText(NoteActivity.this, "Failed to insert image", Toast.LENGTH_SHORT).show();
+                }
+
+                if (uri != null) {
+                    // If null, handle it:
+
+                }
+            });
+
 
 
     /**
@@ -157,6 +205,7 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
                     return true;
                 } else if (menuItem.getItemId() == R.id.item1b) {
                     Toast.makeText(getApplicationContext(), "Add Photo/Video From Library", Toast.LENGTH_SHORT).show();
+                    checkPermissionAndOpenGallery();
                     return true;
                 } else if (menuItem.getItemId() == R.id.item2) {
                     Toast.makeText(getApplicationContext(), "Add Voice Note", Toast.LENGTH_SHORT).show();
@@ -196,6 +245,89 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
     }
 
     // ==============================
+    // REGION: Image Handling
+    // ==============================
+
+    /**
+     * Called by a button
+     * Checks for permissions to read images from storage
+     * Permission Granted: Opens gallery for image selection
+     * Permission not Granted: Request for permissions
+     */
+    private void checkPermissionAndOpenGallery() {
+
+        if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED){
+            // if no permissions, request
+            ActivityCompat.requestPermissions(NoteActivity.this, new String[] {Manifest.permission.READ_MEDIA_IMAGES},REQUEST_STORAGE_PERMISSION);
+        }
+
+        else{
+            // if permission granted, go to gallery
+            selectImage();
+        }
+    }
+
+    /**
+     * Callback for the result from requesting permissions
+     * @param requestCode The request code in
+     * @param permissions The requested permissions. Never null.
+     * @param grantResults The grant results for the corresponding permissions
+     *     which is either {@link android.content.pm.PackageManager#PERMISSION_GRANTED}
+     *     or {@link android.content.pm.PackageManager#PERMISSION_DENIED}. Never null.
+     *
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults){
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        // check permission requests for READ_MEDIA_IMAGES
+        if (requestCode == REQUEST_STORAGE_PERMISSION && grantResults.length > 0){
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                // if permission granted, then allow access
+            }
+            else{
+
+                // if permission denied, inform user
+                Toast.makeText(this, "Permission Denied!", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    /**
+     * Launches an intent to open the gallery
+     * Allow the user to select an image
+     */
+    private void selectImage(){
+        mGetContent.launch("image/*");
+    }
+
+    /**
+     * Save the image to internal storage so it still exists even if user deletes from gallery
+     * -- should be called right after the user picks their image
+     * @param imageUri
+     * @return
+     */
+    private Uri saveImageToInternalStorage(Uri imageUri){
+        try{
+            // Open image using received Uri
+            InputStream inputStream = getContentResolver().openInputStream(imageUri);
+            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+
+            // Save image to app's internal storage
+            String imageName = "image_" + System.currentTimeMillis() + ".png";
+            FileOutputStream fos = openFileOutput(imageName, MODE_PRIVATE);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
+            fos.close();
+
+            // return URI to saved image
+            return FileProvider.getUriForFile(this,"com.example.journalapp.fileprovider", new File(getFilesDir(), imageName));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null; // remember to handle using: if (uri != null)
+        }
+    }
+
+    // ==============================
     // REGION: Setting up Note Data
     // ==============================
 
@@ -210,7 +342,7 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
         noteRepository.insertNote(note);
 
         // Initialize the contents of noteItems as a single EditText
-        noteItems.add(new NoteItem(NoteItem.ItemType.TEXT,null,"", null, 0)); // Empty text for the user to start typing
+        noteItems.add(new NoteItem(NoteItem.ItemType.TEXT,null,"",  0)); // Empty text for the user to start typing
 
     }
 

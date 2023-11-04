@@ -1,5 +1,6 @@
 package com.example.journalapp.ui.note;
 
+import android.net.Uri;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -12,6 +13,7 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.journalapp.R;
 import com.example.journalapp.ui.note.NoteItem;
 
@@ -262,17 +264,13 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
          * @param noteItem
          */
         public void bind(NoteItem noteItem) {
-            /*
-            // Assuming NoteItem has a method to get image URI or resource ID
-            Uri imageUri = noteItem.getImageUri();
-            if (imageUri != null) {
-                // Use a library like Glide or Picasso to load the image
+            Uri imageUri = noteItem.getContentImageUri();
+            if (imageUri != null){
+                // Use Glide to load the iamge from the URI @TODO add .placeholders/error images
                 Glide.with(itemView.getContext())
                         .load(imageUri)
                         .into(imageView);
             }
-            // Add more binding logic if needed
-            */
         }
     }
 }
