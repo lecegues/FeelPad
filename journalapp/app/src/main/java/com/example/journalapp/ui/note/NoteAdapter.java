@@ -26,27 +26,22 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable;
  * It handles the creation and binding of view holders for text and image content.
  */
 public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
-    private List<NoteItem> noteItems;
-    private OnNoteItemChangeListener onNoteItemChangeListener;
-
-    // Interface for callback
-    public interface OnNoteItemChangeListener {
-        void onNoteItemContentChanged();
-    }
-
-    // Setter for the listener
-    public void setOnNoteItemChangeListener(OnNoteItemChangeListener listener){
-        this.onNoteItemChangeListener = listener;
-    }
+    private List<NoteItem> noteItems; // noteItems passed from the NoteActivity
+    private OnNoteItemChangeListener onNoteItemChangeListener; // listener to handle changes in note items
 
     /**
-     * Constructs a NoteAdapter with a list of Noteitems
+     * Constructs a NoteAdapter with a list of NoteItems
      * @param noteItems
      */
     public NoteAdapter(List<NoteItem> noteItems){
         this.noteItems = noteItems;
     }
 
+    /**
+     * Determines the type of view needed based on the position of the item
+     * @param position position to query
+     * @return
+     */
     @Override
     public int getItemViewType(int position) {
         // Return the view type of the item at position for correct View holder binding
@@ -70,14 +65,14 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         if (viewType == NoteItem.ItemType.TEXT.ordinal()){
             View view = LayoutInflater.from(parent.getContext())
                     .inflate(com.example.journalapp.R.layout.item_note_text, parent, false);
-            return new TextViewHolder(view, onNoteItemChangeListener); // @TODO custom viewholder class
+            return new TextViewHolder(view, onNoteItemChangeListener); // text listener
         }
 
         // if image
         else if (viewType == NoteItem.ItemType.IMAGE.ordinal()){
             View view = LayoutInflater.from(parent.getContext())
                     .inflate(com.example.journalapp.R.layout.item_note_image, parent, false);
-            return new ImageViewHolder(view);
+            return new ImageViewHolder(view); // needs custom listener
         }
 
         // otherwise
@@ -89,8 +84,8 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
     }
 
     /**
-     * Binds the data at the specified position into the corresponding viewHolder
-     * @TODO not setup yet because Database cannot retrieve data properly yet
+     * Replace the contents of a view
+     * invoked by the layout manager
      * @param holder The ViewHolder which should be updated to represent the contents of the
      *        item at the given position in the data set.
      * @param position The position of the item within the adapter's data set.
@@ -107,11 +102,9 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         }
     }
 
-
-
     /**
      * Deals with views that are being recycled
-     * We want to delete the TextWatcher
+     * We want to delete resources or listeners
      * @param holder The ViewHolder for the view being recycled
      */
     @Override
@@ -122,22 +115,49 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         }
     }
 
+    /**
+     * Returns the size of the dataset
+     * inveoked by layout manager
+     * @return
+     */
     @Override
     public int getItemCount() {
         return noteItems.size();
     }
 
+    /**
+     * Interface implemented by activities or fragments that use this adapter.
+     * Used to notify when a note item's content has changed
+     */
+    public interface OnNoteItemChangeListener {
+        void onNoteItemContentChanged();
+    }
+
+    /**
+     * Setter method to assign a lsitener for note item changes
+     * @param listener
+     */
+    public void setOnNoteItemChangeListener(OnNoteItemChangeListener listener){
+        this.onNoteItemChangeListener = listener;
+    }
+
+    // ==============================
+    // REGION: Handle Text
+    // ==============================
 
     /**
      * ViewHolder for text content within a note
      */
     static class TextViewHolder extends RecyclerView.ViewHolder {
-        // Define your text view holder components
+
         private EditText editText;
+        private NoteItem currentNoteItem;
+
+        // Autosave Variables
         private CompositeDisposable compositeDisposable = new CompositeDisposable();
         private static final long SAVE_DELAY = 1000; // Delay for 1 second before auto-saving
-        private NoteItem currentNoteItem;
         private OnNoteItemChangeListener listener;
+
 
         /**
          * Constructs a TextViewHolder for text content
@@ -145,7 +165,7 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
          */
         public TextViewHolder(View itemView, OnNoteItemChangeListener listener) {
             super(itemView);
-            this.listener = listener;
+            this.listener = listener; // to pass onto save function later
             editText = itemView.findViewById(R.id.edit_text_note_text);
 
         }
@@ -181,7 +201,7 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
             }));
 
             // Sets debounce time (ms) for title changes
-            /* 5 seconds */
+            /* 1 second */
             Observable<String> titleObservable = titleChangedObservable
                     .debounce(SAVE_DELAY, TimeUnit.MILLISECONDS);
 
@@ -200,21 +220,26 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
             }
         }
 
+        /**
+         * Save contents to local noteItems list and notify listener of the change
+         * @param content
+         */
         public void saveNoteContents(String content){
             // Save to noteItem
             if (currentNoteItem != null){
                 currentNoteItem.setContent(content);
 
-                // notify the activity that content has changed
+                // notify the activity that content has changed to save to database
                 if (listener != null){
                     listener.onNoteItemContentChanged();
                 }
             }
-
-
         }
-
     }
+
+    // ==============================
+    // REGION: Handle Images
+    // ==============================
 
     /**
      * ViewHolder for image content within a note

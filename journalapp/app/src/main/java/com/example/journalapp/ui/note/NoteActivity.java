@@ -215,19 +215,25 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
     }
 
     /**
-     * Initialize an existing note with date, title, and description
-     * from database
+     * Initializes the UI with data from an existing note based on the provided note ID.
+     * It retrieves the note details and note items from the database and updates the UI.
+     *
+     * @param note_id String ID of the note to be loaded into the UI
      */
     private void setExistingNote(String note_id) {
+
         // Observe the LiveData returned by the repository for note items
         noteRepository.getNoteItemsForNote(note_id).observe(this, noteItemEntities -> {
             // This code will run when the note items are loaded or when they change.
+
             // Convert NoteItemEntity to NoteItem
             List<NoteItem> newNoteItems = convertNoteItemEntitiesToNoteItems(noteItemEntities);
-            // Update the shared noteItems list
+
+            // Make sure the noteItems list is clear to add all items from the database to it
             noteItems.clear();
             noteItems.addAll(newNoteItems);
-            // Notify the adapter of the change
+
+            // Notify the adapter of the change to refresh RecyclerView.
             noteAdapter.notifyDataSetChanged();
         });
 
@@ -235,11 +241,12 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
         executorService.execute(() -> {
             Note fetchedNote = noteRepository.getNoteById(note_id);
             if (fetchedNote != null) {
+
                 // Use UI Thread to update UI with the fetched note
                 runOnUiThread(() -> {
                     note = fetchedNote;
                     titleEditText.setText(note.getTitle());
-                    // You may also want to update the description or other fields if necessary.
+
                 });
             } else {
                 // Handle the case where the note is null (e.g., not found in the database)
@@ -248,8 +255,13 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
         });
     }
 
+    // ==============================
+    // REGION: Database Operations
+    // ==============================
+
     /**
-     * Save note title locally and to database
+     * Saves title of the note both locally and in the current activity instance
+     * Called in response to changes in the title via auto save
      *
      * @param title The note's title
      */
@@ -260,20 +272,25 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
     }
 
     /**
-     * Save note description locally and to the database.
+     * Saves the contents of the note to the database
+     * First checks if it should update or add content to the database
+     * Usually called by program when changes are detected by auto save
      *
      */
     public void saveNoteContent() {
+        // must be done on a background thread
         executorService.execute(() -> {
-            // Get the current list of note items from the database synchronously
+
+            // Get the current list of note items from the database
             List<NoteItemEntity> currentNoteItems = noteRepository.getNoteItemsForNoteSync(note.getId());
 
             // Create a list to hold new or updated entities
             List<NoteItemEntity> noteItemEntitiesToSave = new ArrayList<>();
 
-            // Iterate over the local note items
+            // Iterate over the LOCAL note items
             for (NoteItem noteItem : noteItems) {
-                // Check if the NoteItem matches an existing NoteItemEntity
+
+                // Check if there are any matches between LOCAL noteItems and DATABASE noteItems
                 NoteItemEntity matchingEntity = null;
                 for (NoteItemEntity entity : currentNoteItems) {
                     if (entity.getItemId().equals(noteItem.getItemId())) {
@@ -282,13 +299,17 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
                     }
                 }
 
+                // If there is a match, then we want to update it
                 if (matchingEntity != null) {
                     Log.e("Saving", "Found a matching Entity. Updating said Entity");
                     // Update the existing entity with new content
                     matchingEntity.setContent(noteItem.getContent());
                     matchingEntity.setOrderIndex(noteItem.getOrderIndex());
                     noteRepository.updateNoteItem(matchingEntity); // Update immediately
-                } else {
+                }
+
+                // Otherwise, it is a new NoteItem, and we want to create it in the database.
+                else {
                     Log.e("Saving", "Did not find matching Entity. Saving a new Entity");
                     // Create a new entity with the ID from NoteItem
                     NoteItemEntity newEntity = new NoteItemEntity(
@@ -301,15 +322,14 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
                     noteRepository.insertNoteItem(newEntity); // Insert immediately
                 }
             }
-
-            // Inform the user that the note has been saved
-            // This must be done on the main thread since it interacts with the UI
-            runOnUiThread(() -> Toast.makeText(NoteActivity.this, "Note saved", Toast.LENGTH_SHORT).show());
+            runOnUiThread(() -> Toast.makeText(NoteActivity.this, "Note saved", Toast.LENGTH_SHORT).show()); // inform saving of note
         });
     }
 
 
-
+    // ==============================
+    // REGION: Other
+    // ==============================
 
     /**
      * This is called when the NoteAdapter notices changes made to noteItems
@@ -320,19 +340,38 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
     }
 
     /**
+     * If back button is pressed
+     */
+    @Override
+    public void onBackPressed() {
+        exitNote(null);
+    }
+
+    /**
+     * If user pauses the application
+     */
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (isFinishing()){
+            exitNote(null);
+        }
+    }
+
+    /**
      * Remove the note from the database if there is, no
-     * title or description to be saved
+     * title or if the contents of the note is empty.
      *
      * @param view The button view that triggers the save operation
      */
     public void exitNote(View view) {
         String title = note.getTitle();
-        if ( (noteItems.size() == 1 && noteItems.get(0).getContent() == "") && title.isEmpty()) {
+        if ( (noteItems.size() == 1 && noteItems.get(0).getContent().equals("") ) && title.isEmpty()) {
             Log.e("Exiting note", "Deleting note");
             noteRepository.deleteNote(note);
         }
         else{
-            saveNoteContent();
+            saveNoteContent(); // add to onExit?? method instead?
         }
         finish();
     }

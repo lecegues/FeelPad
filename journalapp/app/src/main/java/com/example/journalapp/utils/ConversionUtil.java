@@ -7,12 +7,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Utility class for converting between different objects
+ * Utility class for converting between different UI objects
+ * Excludes Room Database Conversions
  */
 public class ConversionUtil {
 
 
-    // Converts a list of NoteItem to a list of NoteItemEntity
+    /**
+     * Converts a list of NoteItem objects to a list of NoteItemEntity objects
+     * Can be used before saving items to a database
+     * @param items
+     * @param noteId
+     * @return
+     */
     public static List<NoteItemEntity> convertNoteItemsToEntities(List<NoteItem> items, String noteId) {
         List<NoteItemEntity> entities = new ArrayList<>();
         for (NoteItem item : items) {
@@ -27,10 +34,19 @@ public class ConversionUtil {
         return entities;
     }
 
+    /**
+     * Converts a list of NoteItemEntity objects ot a list of NoteItem objects
+     * Typically used when fetching items from the database to be displayed in UI
+     * @param noteItemEntities
+     * @return
+     */
     public static List<NoteItem> convertNoteItemEntitiesToNoteItems(List<NoteItemEntity> noteItemEntities) {
         List<NoteItem> noteItems = new ArrayList<>();
         for (NoteItemEntity entity : noteItemEntities) {
-            NoteItem.ItemType itemType = NoteItem.ItemType.values()[entity.getType()]; // Convert int to ItemType
+            // Convert integer type back to ItemType enum
+            NoteItem.ItemType itemType = NoteItem.ItemType.values()[entity.getType()];
+
+            // Create a new NoteItem with the data from NoteItemEntity
             noteItems.add(new NoteItem(itemType,entity.getItemId(), entity.getContent(), null, entity.getOrderIndex()));
         }
         return noteItems;
