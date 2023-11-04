@@ -1,4 +1,4 @@
-package com.example.journalapp.note;
+package com.example.journalapp.database.entity;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;

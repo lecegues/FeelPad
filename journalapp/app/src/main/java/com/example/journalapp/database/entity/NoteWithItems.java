@@ -1,7 +1,10 @@
-package com.example.journalapp.note;
+package com.example.journalapp.database.entity;
 
 import androidx.room.Embedded;
 import androidx.room.Relation;
+
+import com.example.journalapp.database.entity.Note;
+import com.example.journalapp.database.entity.NoteItemEntity;
 
 import java.util.List;
 

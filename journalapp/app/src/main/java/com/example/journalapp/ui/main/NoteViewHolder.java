@@ -1,4 +1,4 @@
-package com.example.journalapp.note;
+package com.example.journalapp.ui.main;
 
 import android.view.LayoutInflater;
 import android.view.View;

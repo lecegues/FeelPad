@@ -1,17 +1,18 @@
-package com.example.journalapp.note;
+package com.example.journalapp.database.entity;
 
 import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
 import androidx.room.PrimaryKey;
-import androidx.room.TypeConverter;
 import androidx.room.TypeConverters;
+
+import com.example.journalapp.utils.ItemTypeConverter;
 
 import java.util.UUID;
 
 @Entity(tableName="note_items",
-        foreignKeys = @ForeignKey(entity=Note.class,
+        foreignKeys = @ForeignKey(entity= Note.class,
                 parentColumns = "id",
                 childColumns = "note_id",
                 onDelete = ForeignKey.CASCADE))

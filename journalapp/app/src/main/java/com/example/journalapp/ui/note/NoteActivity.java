@@ -1,6 +1,6 @@
-package com.example.journalapp;
+package com.example.journalapp.ui.note;
 
-import static com.example.journalapp.utility.ConversionUtil.convertNoteItemEntitiesToNoteItems;
+import static com.example.journalapp.utils.ConversionUtil.convertNoteItemEntitiesToNoteItems;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,19 +10,16 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.PopupMenu;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.journalapp.newnote.NoteAdapter;
-import com.example.journalapp.newnote.NoteItem;
-import com.example.journalapp.note.Note;
-import com.example.journalapp.note.NoteItemEntity;
-import com.example.journalapp.note.NoteRepository;
-import com.example.journalapp.utility.ConversionUtil;
+import com.example.journalapp.R;
+import com.example.journalapp.database.entity.Note;
+import com.example.journalapp.database.entity.NoteItemEntity;
+import com.example.journalapp.database.NoteRepository;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -34,13 +31,12 @@ import java.util.concurrent.TimeUnit;
 
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import io.reactivex.rxjava3.subjects.PublishSubject;
 
 /**
  * Activity representing a single note page
  * Contains creation and saving of a note
  */
-public class NewNoteActivity extends AppCompatActivity implements NoteAdapter.OnNoteItemChangeListener {
+public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNoteItemChangeListener {
     private EditText titleEditText;
     private NoteRepository noteRepository;
     private Note note;
@@ -56,7 +52,7 @@ public class NewNoteActivity extends AppCompatActivity implements NoteAdapter.On
     private RecyclerView noteContentRecyclerView;
     private NoteAdapter noteAdapter;
     private List<NoteItem> noteItems;
-    private PublishSubject<String> noteContentChangeSubject = PublishSubject.create();
+
 
 
 
@@ -309,7 +305,7 @@ public class NewNoteActivity extends AppCompatActivity implements NoteAdapter.On
 
             // Inform the user that the note has been saved
             // This must be done on the main thread since it interacts with the UI
-            runOnUiThread(() -> Toast.makeText(NewNoteActivity.this, "Note saved", Toast.LENGTH_SHORT).show());
+            runOnUiThread(() -> Toast.makeText(NoteActivity.this, "Note saved", Toast.LENGTH_SHORT).show());
         });
     }
 

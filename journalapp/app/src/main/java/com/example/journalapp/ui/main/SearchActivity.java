@@ -1,4 +1,4 @@
-package com.example.journalapp;
+package com.example.journalapp.ui.main;
 
 import android.app.SearchManager;
 import android.content.Context;
@@ -12,9 +12,9 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.journalapp.note.NoteViewModel;
-
-import java.util.concurrent.TimeUnit;
+import com.example.journalapp.R;
+import com.example.journalapp.ui.main.NoteViewModel;
+import com.example.journalapp.ui.main.NoteListAdapter;
 
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;

@@ -1,4 +1,4 @@
-package com.example.journalapp.newnote;
+package com.example.journalapp.ui.note;
 
 import android.net.Uri;
 import android.util.Log;
