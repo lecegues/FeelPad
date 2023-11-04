@@ -62,15 +62,6 @@ public class NoteRepository {
     }
 
     /**
-     * Update note description
-     *
-     * @param note The Note to be updated
-     */
-    public void updateNoteDescription(Note note) {
-        NoteDatabase.databaseWriteExecutor.execute(() -> noteDao.updateNoteDescription(note.getDescription(), note.getId()));
-    }
-
-    /**
      * Retrieve all notes using LiveData list of notes. Live
      * data list of notes descending order by date.
      *
@@ -80,7 +71,7 @@ public class NoteRepository {
         return noteDao.getAllNotesOrderByCreatedDateDesc();
     }
 
-    /**
+    /** @TODO NoteDao operation broken for this. Fix NoteDao first
      * Retrieve all note containing the provided string in their title, description, or date,
      * using LiveData list of notes.
      *

@@ -38,7 +38,7 @@ public class NoteViewModel extends AndroidViewModel {
         return noteRepository.getAllNotesOrderedByCreatedDateDesc();
     }
 
-    /**
+    /** @TODO Broken function -> Repository -> NoteDao
      * Retrieve LiveData containing a list of notes where title, description, or date, contains
      * the provided string.
      *

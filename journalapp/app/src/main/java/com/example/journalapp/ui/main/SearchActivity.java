@@ -21,7 +21,8 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable;
 
 /**
  * the activity that receives the search query, searches for data,
- * and display the search results
+ * and display the search results.
+ * NOTE: Not working due to NoteDao getAllNotesWhereTitleDateDescContains
  */
 public class SearchActivity extends AppCompatActivity {
 
@@ -90,7 +91,7 @@ public class SearchActivity extends AppCompatActivity {
                 searchObservable.subscribe(this::performQuery));
     }
 
-    /**
+    /** @TODO Broken query
      * Perform the search query and update the recycler view
      *
      * @param query The search query
