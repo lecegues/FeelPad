@@ -3,15 +3,16 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="8dp">
+    android:padding="4dp">
 
     <EditText
         android:id="@+id/edit_text_note_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="..."
+        android:hint=""
         android:inputType="textMultiLine|textCapSentences"
         android:minHeight="48dp"
         android:padding="8dp"
-        android:textSize="16sp" />
+        android:textSize="16sp"
+        android:background="@null"/>
 </LinearLayout>
