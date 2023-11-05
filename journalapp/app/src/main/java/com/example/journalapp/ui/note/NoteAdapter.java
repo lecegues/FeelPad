@@ -136,6 +136,10 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         void onNoteItemContentChanged();
     }
 
+    /**
+     * Interface implemented by activities or fragments that use this adapter.
+     * Used to notify when the focus has changed
+     */
     public interface OnItemFocusChangeListener {
         void onItemFocusChange(int position, boolean hasFocus);
     }
@@ -148,10 +152,19 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         this.onNoteItemChangeListener = listener;
     }
 
+    /**
+     * Setter method to assign a listener for focused item in the adapter.
+     * @param listener
+     */
     public void setOnItemFocusChangeListener(OnItemFocusChangeListener listener){
         this.onItemFocusChangeListener = listener;
     }
 
+    /**
+     * Getse the index of the currently focused item in the adapter.
+     *
+     * @return
+     */
     public int getCurrentCursorIndex(){
         return focusedItem;
     }
@@ -176,9 +189,10 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
 
 
         /**
-         * Constructs a TextViewHolder for text content
-         *
+         * Constructs a TextviewHolder for content
          * @param itemView
+         * @param noteItemChangeListener
+         * @param focusChangeListener
          */
         public TextViewHolder(View itemView, OnNoteItemChangeListener noteItemChangeListener, OnItemFocusChangeListener focusChangeListener) {
             super(itemView);
@@ -284,8 +298,9 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         private OnItemFocusChangeListener focusChangeListener;
 
         /**
-         * Constructs an ImageViewHolder for the image content
+         * Constructs an ImageviewHolder for content
          * @param itemView
+         * @param focusChangeListener
          */
         public ImageViewHolder(View itemView, OnItemFocusChangeListener focusChangeListener) {
             super(itemView);
