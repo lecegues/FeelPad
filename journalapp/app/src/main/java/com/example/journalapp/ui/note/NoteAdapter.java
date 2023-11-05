@@ -15,7 +15,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.journalapp.R;
-import com.example.journalapp.ui.note.NoteItem;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -30,6 +29,8 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable;
 public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
     private List<NoteItem> noteItems; // noteItems passed from the NoteActivity
     private OnNoteItemChangeListener onNoteItemChangeListener; // listener to handle changes in note items
+    private OnItemFocusChangeListener onItemFocusChangeListener; // listener to handle item focus
+    private int focusedItem = -1; // -1 means no focused item
 
     /**
      * Constructs a NoteAdapter with a list of NoteItems
@@ -67,14 +68,14 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         if (viewType == NoteItem.ItemType.TEXT.ordinal()){
             View view = LayoutInflater.from(parent.getContext())
                     .inflate(com.example.journalapp.R.layout.item_note_text, parent, false);
-            return new TextViewHolder(view, onNoteItemChangeListener); // text listener
+            return new TextViewHolder(view, onNoteItemChangeListener, onItemFocusChangeListener); // text listener
         }
 
         // if image
         else if (viewType == NoteItem.ItemType.IMAGE.ordinal()){
             View view = LayoutInflater.from(parent.getContext())
                     .inflate(com.example.journalapp.R.layout.item_note_image, parent, false);
-            return new ImageViewHolder(view); // needs custom listener
+            return new ImageViewHolder(view, onItemFocusChangeListener); // needs custom listener
         }
 
         // otherwise
@@ -135,12 +136,24 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         void onNoteItemContentChanged();
     }
 
+    public interface OnItemFocusChangeListener {
+        void onItemFocusChange(int position, boolean hasFocus);
+    }
+
     /**
      * Setter method to assign a lsitener for note item changes
      * @param listener
      */
     public void setOnNoteItemChangeListener(OnNoteItemChangeListener listener){
         this.onNoteItemChangeListener = listener;
+    }
+
+    public void setOnItemFocusChangeListener(OnItemFocusChangeListener listener){
+        this.onItemFocusChangeListener = listener;
+    }
+
+    public int getCurrentCursorIndex(){
+        return focusedItem;
     }
 
     // ==============================
@@ -155,20 +168,39 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         private EditText editText;
         private NoteItem currentNoteItem;
 
-        // Autosave Variables
+        // Auto save Variables
         private CompositeDisposable compositeDisposable = new CompositeDisposable();
         private static final long SAVE_DELAY = 1000; // Delay for 1 second before auto-saving
-        private OnNoteItemChangeListener listener;
+        private OnNoteItemChangeListener noteItemChangeListener;
+        private OnItemFocusChangeListener focusChangeListener;
 
 
         /**
          * Constructs a TextViewHolder for text content
+         *
          * @param itemView
          */
-        public TextViewHolder(View itemView, OnNoteItemChangeListener listener) {
+        public TextViewHolder(View itemView, OnNoteItemChangeListener noteItemChangeListener, OnItemFocusChangeListener focusChangeListener) {
             super(itemView);
-            this.listener = listener; // to pass onto save function later
+            this.noteItemChangeListener = noteItemChangeListener; // to pass onto save function later
+            this.focusChangeListener = focusChangeListener;
             editText = itemView.findViewById(R.id.edit_text_note_text);
+
+            // Check focus
+            editText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+
+                @Override
+                public void onFocusChange(View view, boolean hasFocus) {
+                    if (hasFocus) {
+                        // update focused item index when EditText gains focus
+                        focusChangeListener.onItemFocusChange(getAdapterPosition(), true);
+
+                    }
+                    else{
+                        focusChangeListener.onItemFocusChange(getAdapterPosition(), false);
+                    }
+                }
+            });
 
         }
 
@@ -232,8 +264,8 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
                 currentNoteItem.setContent(content);
 
                 // notify the activity that content has changed to save to database
-                if (listener != null){
-                    listener.onNoteItemContentChanged();
+                if (noteItemChangeListener != null){
+                    noteItemChangeListener.onNoteItemContentChanged();
                 }
             }
         }
@@ -249,14 +281,27 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
     static class ImageViewHolder extends RecyclerView.ViewHolder {
         // Define your image view holder components
         private ImageView imageView;
+        private OnItemFocusChangeListener focusChangeListener;
 
         /**
          * Constructs an ImageViewHolder for the image content
          * @param itemView
          */
-        public ImageViewHolder(View itemView) {
+        public ImageViewHolder(View itemView, OnItemFocusChangeListener focusChangeListener) {
             super(itemView);
+            this.focusChangeListener = focusChangeListener;
             imageView = itemView.findViewById(R.id.image_view_note_image);
+
+            // Check if in focus
+            imageView.setFocusableInTouchMode(true);
+            imageView.setOnClickListener(new View.OnClickListener(){
+
+                @Override
+                public void onClick(View v){
+                    // when image is clicked, consider as focused
+                    focusChangeListener.onItemFocusChange(getAdapterPosition(), true);
+                }
+            });
         }
 
         /**

@@ -61,6 +61,7 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
     private RecyclerView noteContentRecyclerView;
     private NoteAdapter noteAdapter;
     private List<NoteItem> noteItems;
+    private int focusedItem = -1;
 
     // Note Database Variables
     private NoteRepository noteRepository;
@@ -238,6 +239,20 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
         RecyclerView noteContentRecyclerView = findViewById(R.id.recycler_view_notes); // Make sure this ID matches your layout
         noteAdapter = new NoteAdapter(noteItems);
 
+        // Set the focus change listener
+        noteAdapter.setOnItemFocusChangeListener(new NoteAdapter.OnItemFocusChangeListener() {
+            @Override
+            public void onItemFocusChange(int position, boolean hasFocus) {
+                if (hasFocus){
+                    focusedItem = position;
+                    Log.e("Focus", "Focus has changed to position " + focusedItem);
+                }
+                else if (focusedItem == position){
+                    focusedItem = -1;
+                }
+            }
+        });
+
         // Set up the RecyclerView
         noteContentRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         noteContentRecyclerView.setAdapter(noteAdapter);
@@ -366,7 +381,7 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
             noteItems.addAll(newNoteItems);
 
             // Notify the adapter of the change to refresh RecyclerView.
-            noteAdapter.notifyDataSetChanged();
+            noteAdapter.notifyDataSetChanged(); // resource intensive, but okay because its only done when setting the existing note
         });
 
         // Retrieve the note using the id on a background thread
