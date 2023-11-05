@@ -61,7 +61,7 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
     private RecyclerView noteContentRecyclerView;
     private NoteAdapter noteAdapter;
     private List<NoteItem> noteItems;
-    private int focusedItem = -1;
+    private int focusedItem = -1; // starts at invalid
 
     // Note Database Variables
     private NoteRepository noteRepository;
@@ -83,7 +83,8 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
                     Uri localUri = saveImageToInternalStorage(uri);
 
                     // Create a new imageView and pass the uri to the adapter
-                    noteItems.add(new NoteItem(NoteItem.ItemType.IMAGE,null,localUri.toString(), noteItems.size())); // @TODO how to manage orderIndex?
+                    //noteItems.add(new NoteItem(NoteItem.ItemType.IMAGE,null,localUri.toString(), noteItems.size())); // @TODO how to manage orderIndex?
+                    insertImage(localUri);
 
                     // Notify the adapter that an item has been added
                     // noteAdapter.notifyItemInserted(noteItems.size() - 1);
@@ -342,6 +343,58 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
         }
     }
 
+    /**
+     * Inserts an image into the note based on the position of the current focused item
+     * Case 1: Focused Item: EditText && isEmpty -> Replace with image and push EditText down
+     * Case 2: Focused Item: EditText && !(isEmpty) -> Put image underneath EditText and create new EditText under image
+     * Case 3: Focused Item: Image -> Put image underneath Image
+     * @param imageUri
+     */
+    public void insertImage(Uri imageUri) {
+        int focusedIndex = focusedItem;
+
+        // Check if focus is within bounds of list
+        if (focusedIndex >= 0 && focusedIndex < noteItems.size()) {
+            // Get currently focused note item
+            NoteItem focusedNoteItem = noteItems.get(focusedIndex);
+
+            Log.e("Focus", "Focused item when inserting image: " + focusedItem);
+
+            // Determine type of focused note item
+            switch (focusedNoteItem.getType()) {
+                case TEXT:
+                    String textContent = focusedNoteItem.getContent();
+                    if (textContent.isEmpty()) {
+                        // Case 1: Empty EditText
+                        noteItems.set(focusedIndex, new NoteItem(NoteItem.ItemType.IMAGE, null, imageUri.toString(), focusedIndex));
+                        noteItems.add(focusedIndex + 1, new NoteItem(NoteItem.ItemType.TEXT, null, "", focusedIndex + 1));
+                        noteAdapter.notifyItemChanged(focusedIndex);
+                        noteAdapter.notifyItemInserted(focusedIndex + 1);
+                    } else {
+                        // Case 2: Non-Empty EditText
+                        noteItems.add(focusedIndex + 1, new NoteItem(NoteItem.ItemType.IMAGE, null, imageUri.toString(), focusedIndex + 1));
+                        noteItems.add(focusedIndex + 2, new NoteItem(NoteItem.ItemType.TEXT, null, "", focusedIndex + 2));
+                        noteAdapter.notifyItemRangeInserted(focusedIndex + 1, 2);
+                    }
+                    break;
+                case IMAGE:
+                    // Case 3: Image Focused
+                    noteItems.add(focusedIndex + 1, new NoteItem(NoteItem.ItemType.IMAGE, null, imageUri.toString(), focusedIndex + 1));
+                    noteAdapter.notifyItemInserted(focusedIndex + 1);
+                    break;
+            }
+        } else {
+            // If no item is focused, add the image at the end
+            noteItems.add(new NoteItem(NoteItem.ItemType.IMAGE, null, imageUri.toString(), noteItems.size()));
+            noteAdapter.notifyItemInserted(noteItems.size() - 1);
+        }
+
+        // Update order indexes for all items following the insertion point
+        for (int i = focusedIndex + 1; i < noteItems.size(); i++) {
+            noteItems.get(i).setOrderIndex(i);
+        }
+    }
+
     // ==============================
     // REGION: Setting up Note Data
     // ==============================
@@ -358,6 +411,9 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
 
         // Initialize the contents of noteItems as a single EditText
         noteItems.add(new NoteItem(NoteItem.ItemType.TEXT,null,"",  0)); // Empty text for the user to start typing
+
+        // set focusedItem to first item
+        focusedItem = 0;
 
     }
 
@@ -396,10 +452,12 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
 
                 });
             } else {
-                // Handle the case where the note is null (e.g., not found in the database)
+                // Handle the case where the note is null (e.`g., not found in the database)
                 runOnUiThread(this::finish);
             }
         });
+
+        focusedItem = 0;
     }
 
     // ==============================
