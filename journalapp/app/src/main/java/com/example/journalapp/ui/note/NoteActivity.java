@@ -3,6 +3,7 @@ package com.example.journalapp.ui.note;
 import static com.example.journalapp.utils.ConversionUtil.convertNoteItemEntitiesToNoteItems;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -14,6 +15,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.PopupMenu;
@@ -63,6 +65,7 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
     private NoteAdapter noteAdapter;
     private List<NoteItem> noteItems;
     private int focusedItem = -1; // starts at invalid
+    private int highlightedItem = -1; // starts at invalid
 
     // Note Database Variables
     private NoteRepository noteRepository;
@@ -232,6 +235,7 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
      * Initialize the RecyclerView that represents a Note's contents
      * Contents can include: EditTexts, ImageViews, etc.
      */
+    @SuppressLint("ClickableViewAccessibility")
     private void initRecyclerView(){
 
         // First initialize the noteItems variable
@@ -243,6 +247,8 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
 
         // Set the focus change listener
         noteAdapter.setOnItemFocusChangeListener(new NoteAdapter.OnItemFocusChangeListener() {
+
+            // Called when focus changes (either user types on EditText or clicks in image)
             @Override
             public void onItemFocusChange(int position, boolean hasFocus) {
                 if (hasFocus){
@@ -253,12 +259,37 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
                     focusedItem = -1;
                 }
             }
+
+            // Called when user long clicks a view
+            @Override
+            public void onItemLongClick(int position) {
+                Log.e("ItemLongClick", "Position #" + position + " has been long clicked.");
+
+                // highlight item in adapter
+                noteAdapter.highlightItem(position);
+
+                // update highlighteditem
+                highlightedItem = position;
+
+            }
+
+
         });
 
         // Set up the RecyclerView
         noteContentRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         noteContentRecyclerView.setAdapter(noteAdapter);
         noteAdapter.setOnNoteItemChangeListener(this); // notified to save if changes are made to noteItems
+
+        // @TODO set up to remove from highlights if outside of a recyclerView is pressed
+    }
+
+    public void clearHighlight(){
+        if (highlightedItem != 1){
+            Log.e("Highlights", "clearing highlights");
+            noteAdapter.clearHighlights();
+            highlightedItem = -1;
+        }
     }
 
     // ==============================
