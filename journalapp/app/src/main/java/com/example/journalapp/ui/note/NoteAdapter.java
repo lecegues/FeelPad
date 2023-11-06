@@ -31,6 +31,7 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
     private OnNoteItemChangeListener onNoteItemChangeListener; // listener to handle changes in note items
     private OnItemFocusChangeListener onItemFocusChangeListener; // listener to handle item focus
     private int focusedItem = -1; // -1 means no focused item
+    private Integer highlightedItem = -1; // -1 is invalid
 
     /**
      * Constructs a NoteAdapter with a list of NoteItems
@@ -96,12 +97,13 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         NoteItem noteItem = noteItems.get(position);
+        boolean isHighlighted = position == highlightedItem;
 
         // Bind the data to the holder based on the item type
         if (holder instanceof TextViewHolder) {
-            ((TextViewHolder) holder).bind(noteItem);
+            ((TextViewHolder) holder).bind(noteItem, isHighlighted);
         } else if (holder instanceof ImageViewHolder) {
-            ((ImageViewHolder) holder).bind(noteItem);
+            ((ImageViewHolder) holder).bind(noteItem, isHighlighted);
         }
     }
 
@@ -142,6 +144,7 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
      */
     public interface OnItemFocusChangeListener {
         void onItemFocusChange(int position, boolean hasFocus);
+        void onItemLongClick(int position);
     }
 
     /**
@@ -167,6 +170,23 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
      */
     public int getCurrentCursorIndex(){
         return focusedItem;
+    }
+
+    public void highlightItem(int position){
+        // Clear previous highlight
+        if (highlightedItem != null && highlightedItem != position){
+            notifyItemChanged(highlightedItem);
+        }
+        highlightedItem = position; // set new highlight
+        notifyItemChanged(position); // notify to rebind ViewHolder
+    }
+
+    public void clearHighlights(){
+        if (highlightedItem != null){
+            int oldPosition = highlightedItem;
+            highlightedItem = null;
+            notifyItemChanged(oldPosition);
+        }
     }
 
     // ==============================
@@ -201,19 +221,22 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
             editText = itemView.findViewById(R.id.edit_text_note_text);
 
             // Check focus
-            editText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            editText.setOnFocusChangeListener((view, hasFocus) -> {
+                if (hasFocus) {
+                    // update focused item index when EditText gains focus
+                    focusChangeListener.onItemFocusChange(getAdapterPosition(), true);
 
-                @Override
-                public void onFocusChange(View view, boolean hasFocus) {
-                    if (hasFocus) {
-                        // update focused item index when EditText gains focus
-                        focusChangeListener.onItemFocusChange(getAdapterPosition(), true);
-
-                    }
-                    else{
-                        focusChangeListener.onItemFocusChange(getAdapterPosition(), false);
-                    }
                 }
+                else{
+                    focusChangeListener.onItemFocusChange(getAdapterPosition(), false);
+                }
+            });
+
+            // set on long click listener
+            editText.setOnLongClickListener(view -> {
+                // call the long click method from the lsitener
+                focusChangeListener.onItemLongClick(getAdapterPosition());
+                return true;
             });
 
         }
@@ -222,7 +245,7 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
          * Binds text content from a NoteItem to the EditText
          * @param noteItem
          */
-        public void bind(NoteItem noteItem) {
+        public void bind(NoteItem noteItem, boolean isHighlighted) {
             currentNoteItem = noteItem;
             editText.setText(noteItem.getContent());
 
@@ -257,6 +280,10 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
             // Subscribe to observables to trigger a save to database
             compositeDisposable.addAll(
                     titleObservable.subscribe(this::saveNoteContents));
+
+            // Set highlights
+            int backgroundId = isHighlighted ? R.drawable.edit_text_background_highlight : R.drawable.edit_text_background;
+            editText.setBackgroundResource(backgroundId);
         }
 
         /**
@@ -307,23 +334,32 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
             this.focusChangeListener = focusChangeListener;
             imageView = itemView.findViewById(R.id.image_view_note_image);
 
+
             // Check if in focus
             imageView.setFocusableInTouchMode(true);
-            imageView.setOnClickListener(new View.OnClickListener(){
-
-                @Override
-                public void onClick(View v){
-                    // when image is clicked, consider as focused
-                    focusChangeListener.onItemFocusChange(getAdapterPosition(), true);
-                }
+            imageView.setOnClickListener(v -> {
+                // when image is clicked, consider as focused
+                focusChangeListener.onItemFocusChange(getAdapterPosition(), true);
             });
+
+            imageView.setOnLongClickListener(v -> {
+                // when image is held, call long click method
+                focusChangeListener.onItemLongClick(getAdapterPosition());
+
+                // also consider as focused
+                focusChangeListener.onItemFocusChange(getAdapterPosition(), true);
+                return true;
+            });
+
+
+
         }
 
         /**
          * Binds the image content from a NoteItem to the imageview
          * @param noteItem
          */
-        public void bind(NoteItem noteItem) {
+        public void bind(NoteItem noteItem, boolean isHighlighted) {
             Uri imageUri = noteItem.getContentImageUri();
             if (imageUri != null){
                 // Use Glide to load the iamge from the URI @TODO add .placeholders/error images
@@ -331,6 +367,10 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
                         .load(imageUri)
                         .into(imageView);
             }
+
+            // Set highlights
+            int backgroundId = isHighlighted ? R.drawable.image_view_background_highlight : R.drawable.image_view_background;
+            imageView.setBackgroundResource(backgroundId);
         }
     }
 }
