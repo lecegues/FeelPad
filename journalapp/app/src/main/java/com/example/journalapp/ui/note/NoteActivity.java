@@ -278,8 +278,6 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
             if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
                 // if no permissions, request
                 ActivityCompat.requestPermissions(NoteActivity.this, new String[] {Manifest.permission.READ_MEDIA_IMAGES}, REQUEST_STORAGE_PERMISSION);
-
-
             }
             else {
                 // if permission granted, go to gallery
