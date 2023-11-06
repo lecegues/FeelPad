@@ -267,10 +267,25 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
 
                 // highlight item in adapter
                 noteAdapter.highlightItem(position);
-
                 // update highlighteditem
                 highlightedItem = position;
 
+                // Find the view by position
+                View view = noteContentRecyclerView.findViewHolderForAdapterPosition(position).itemView;
+
+                // Create a PopupMenu
+                PopupMenu popupMenu = new PopupMenu(NoteActivity.this, view);
+                popupMenu.inflate(R.menu.delete_menu); // Inflate your menu resource
+                popupMenu.setOnMenuItemClickListener(item -> {
+                    if (item.getItemId() == R.id.action_delete) {
+                        // Perform deletion of the item
+                        deleteItem(position);
+                        return true;
+                    }
+                    // ... handle other menu item clicks if necessary
+                    return false;
+                });
+                popupMenu.show();
             }
 
 
@@ -292,6 +307,36 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
         }
     }
 
+    private void deleteItem(int position){
+        Log.e("Deletion", "Deleting an item. Position: " + position);
+
+        // remove items from the list
+        noteItems.remove(position);
+
+        // notify adapter
+        noteAdapter.notifyItemRemoved(position);
+
+        logNoteItems();
+
+        // update ordering for subsequent items in the list
+        for (int i = position; i < noteItems.size(); i++){
+            noteItems.get(i).setOrderIndex(i);
+        }
+
+        logNoteItems();
+
+        // notify the adapter of the item range changed for updating the view
+        noteAdapter.notifyItemRangeChanged(position, noteItems.size() - position);
+
+        saveNoteContent(); // @TODO must be changed to save to database
+    }
+
+    public void logNoteItems() {
+        for (int i = 0; i < noteItems.size(); i++) {
+            NoteItem item = noteItems.get(i);
+            Log.d("NoteItemLog", "Index: " + i + ", Type: " + item.getType() + ", Content: " + item.getContent());
+        }
+    }
     // ==============================
     // REGION: Image Handling
     // ==============================
@@ -536,16 +581,30 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
     public void saveNoteContent() {
         // must be done on a background thread
         executorService.execute(() -> {
-
             // Get the current list of note items from the database
             List<NoteItemEntity> currentNoteItems = noteRepository.getNoteItemsForNoteSync(note.getId());
 
-            // Create a list to hold new or updated entities
-            List<NoteItemEntity> noteItemEntitiesToSave = new ArrayList<>();
+            // Create a list to hold the IDs of LOCAL note items for comparison
+            List<String> localNoteItemIds = new ArrayList<>();
+            for (NoteItem noteItem : noteItems) {
+                localNoteItemIds.add(noteItem.getItemId());
+            }
+
+            // Determine which items have been deleted
+            List<NoteItemEntity> itemsToDelete = new ArrayList<>();
+            for (NoteItemEntity entity : currentNoteItems) {
+                if (!localNoteItemIds.contains(entity.getItemId())) {
+                    itemsToDelete.add(entity);
+                }
+            }
+
+            // Delete the removed items from the database
+            for (NoteItemEntity entity : itemsToDelete) {
+                noteRepository.deleteNoteItem(entity);
+            }
 
             // Iterate over the LOCAL note items
             for (NoteItem noteItem : noteItems) {
-
                 // Check if there are any matches between LOCAL noteItems and DATABASE noteItems
                 NoteItemEntity matchingEntity = null;
                 for (NoteItemEntity entity : currentNoteItems) {
@@ -557,17 +616,12 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
 
                 // If there is a match, then we want to update it
                 if (matchingEntity != null) {
-                    Log.e("Saving", "Found a matching Entity. Updating said Entity");
-                    // Update the existing entity with new content
+                    // Update the existing entity with new content and order
                     matchingEntity.setContent(noteItem.getContent());
                     matchingEntity.setOrderIndex(noteItem.getOrderIndex());
                     noteRepository.updateNoteItem(matchingEntity); // Update immediately
-                }
-
-                // Otherwise, it is a new NoteItem, and we want to create it in the database.
-                else {
-                    Log.e("Saving", "Did not find matching Entity. Saving a new Entity");
-                    // Create a new entity with the ID from NoteItem
+                } else {
+                    // It's a new NoteItem, so create it in the database
                     NoteItemEntity newEntity = new NoteItemEntity(
                             noteItem.getItemId(), // Use the ID from NoteItem
                             note.getId(), // The ID of the note
@@ -578,7 +632,9 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
                     noteRepository.insertNoteItem(newEntity); // Insert immediately
                 }
             }
-            runOnUiThread(() -> Toast.makeText(NoteActivity.this, "Note saved", Toast.LENGTH_SHORT).show()); // inform saving of note
+
+            // Inform user of the save on the UI thread
+            runOnUiThread(() -> Toast.makeText(NoteActivity.this, "Note saved", Toast.LENGTH_SHORT).show());
         });
     }
 
