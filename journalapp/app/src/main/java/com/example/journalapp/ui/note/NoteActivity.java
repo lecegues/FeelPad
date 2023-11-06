@@ -9,6 +9,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -271,16 +272,36 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
      * Permission not Granted: Request for permissions
      */
     private void checkPermissionAndOpenGallery() {
+        // API Level 33+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
+            // API Level 33+
+            if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
+                // if no permissions, request
+                ActivityCompat.requestPermissions(NoteActivity.this, new String[] {Manifest.permission.READ_MEDIA_IMAGES}, REQUEST_STORAGE_PERMISSION);
 
-        if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED){
-            // if no permissions, request
-            ActivityCompat.requestPermissions(NoteActivity.this, new String[] {Manifest.permission.READ_MEDIA_IMAGES},REQUEST_STORAGE_PERMISSION);
+
+            }
+            else {
+                // if permission granted, go to gallery
+                selectImage();
+            }
         }
 
+        // API Level below 33
         else{
-            // if permission granted, go to gallery
-            selectImage();
+
         }
+            // API Below 33
+            if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+                // if no permissions, request
+                ActivityCompat.requestPermissions(NoteActivity.this, new String[] {Manifest.permission.READ_EXTERNAL_STORAGE},REQUEST_STORAGE_PERMISSION);
+
+            }
+
+            else{
+                // if permission granted, go to gallery
+                selectImage();
+            }
     }
 
     /**
@@ -300,6 +321,7 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
         if (requestCode == REQUEST_STORAGE_PERMISSION && grantResults.length > 0){
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED){
                 // if permission granted, then allow access
+                selectImage();
             }
             else{
 
@@ -384,7 +406,7 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
                     break;
             }
         } else {
-            // If no item is focused, add the image at the end
+            // If no item is focused, add the image at the end @TODO insert a text after?? (new case)
             noteItems.add(new NoteItem(NoteItem.ItemType.IMAGE, null, imageUri.toString(), noteItems.size()));
             noteAdapter.notifyItemInserted(noteItems.size() - 1);
         }
