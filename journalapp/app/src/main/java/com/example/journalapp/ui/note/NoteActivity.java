@@ -439,6 +439,22 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
         }
     }
 
+    private boolean deleteImageFromInternalStorage(Uri imageUri) {
+        try {
+            // Get the file's name from the URI
+            String fileName = new File(imageUri.getPath()).getName();
+
+            // Build the file's path within the app's internal storage directory
+            File fileToDelete = new File(getFilesDir(), fileName);
+
+            // Delete the file
+            return fileToDelete.delete();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     /**
      * Inserts an image into the note based on the position of the current focused item
      * Case 1: Focused Item: EditText && isEmpty -> Replace with image and push EditText down
@@ -601,6 +617,16 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
             // Delete the removed items from the database
             for (NoteItemEntity entity : itemsToDelete) {
                 noteRepository.deleteNoteItem(entity);
+
+                // If the entity is of type IMAGE, delete from internal storage as well
+                if (entity.getType() == NoteItem.ItemType.IMAGE.ordinal()) {
+                    Uri imageUri = Uri.parse(entity.getContent()); // assuming the content is the URI in string format
+                    boolean deleted = deleteImageFromInternalStorage(imageUri);
+                    if (!deleted) {
+                        // Handle the case where the image couldn't be deleted
+                        Log.e("Delete Image", "Failed to delete image from internal storage.");
+                    }
+                }
             }
 
             // Iterate over the LOCAL note items
