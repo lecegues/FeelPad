@@ -51,15 +51,21 @@ public class NewNoteActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle saveInstanceState) {
         super.onCreate(saveInstanceState);
-        setContentView(R.layout.activity_note);
-
-        // Initialize UI Widgets & set current date
-        initWidgets();
-        initOptionsMenu();
-
-        // Check if the received intent is for a new note or existing note
         Intent intent = getIntent();
 
+        // Check if a theme background is provided
+        if (intent.hasExtra("themeBackground")) {
+            int themeBackgroundId = intent.getIntExtra("themeBackground", 0);
+
+                // Set the theme background
+            getWindow().setBackgroundDrawableResource(themeBackgroundId);
+
+        }
+        setContentView(R.layout.activity_note);
+
+        initWidgets();
+        initOptionsMenu();
+        // Check if the received intent is for a new note or existing note
         if (intent.hasExtra("note_id")) { // existing note
 
             // retrieve note_id
@@ -70,7 +76,6 @@ public class NewNoteActivity extends AppCompatActivity {
         } else { // new note
             setNewNote();
         }
-
     }
 
     /**

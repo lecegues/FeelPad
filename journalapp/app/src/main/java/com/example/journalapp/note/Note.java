@@ -14,7 +14,7 @@ import java.util.UUID;
  * Represents a 'note' entity in the table
  */
 @Entity(tableName = "note_table")
-public class Note {
+public class  Note {
 
     @PrimaryKey
     @NonNull
@@ -30,6 +30,8 @@ public class Note {
     @ColumnInfo(name = "create_date")
     private String createdDate;
 
+
+
     /**
      * Constructor to create a new Note instance
      *
@@ -43,6 +45,7 @@ public class Note {
         this.description = description;
         this.createdDate = createdDate;
     }
+
 
     /**
      * Getter for unique ID of a note

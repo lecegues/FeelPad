@@ -21,6 +21,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".NewNoteActivity" />
+        <activity android:name=".ThemeSelectionActivity" />
         <activity android:name=".SearchActivity"
             android:exported="true">
             <intent-filter>
