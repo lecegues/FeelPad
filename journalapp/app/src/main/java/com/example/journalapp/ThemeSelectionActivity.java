@@ -24,19 +24,19 @@ public class ThemeSelectionActivity extends AppCompatActivity {
 
         theme1.setOnClickListener(v -> {
             //Log.d("ThemeSelectionActivity", "Theme1 button clicked");
-            noteTheme(R.drawable.background1);
+            noteTheme(R.layout.activity_theme1);
         });
         theme2.setOnClickListener(v -> {
             //Log.d("ThemeSelectionActivity", "Theme2 button clicked");
-            noteTheme(R.drawable.background2);
+            noteTheme(R.layout.activity_theme2);
         });
         theme3.setOnClickListener(v -> {
             //Log.d("ThemeSelectionActivity", "Theme3 button clicked");
-            noteTheme(R.drawable.background3);
+            noteTheme(R.layout.activity_theme3);
         });
         theme4.setOnClickListener(v -> {
             //Log.d("ThemeSelectionActivity", "Theme4 button clicked");
-            noteTheme(R.drawable.background4);
+            noteTheme(R.layout.activity_theme4);
         });
     }
 
