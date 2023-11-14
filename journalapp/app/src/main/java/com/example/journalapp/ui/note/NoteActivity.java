@@ -97,7 +97,6 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
                     Toast.makeText(NoteActivity.this, "Failed to insert image", Toast.LENGTH_SHORT).show();
                 }
 
-                // If null, handle it:
             });
 
 
@@ -255,7 +254,8 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
     // ==============================
 
     /**
-     *
+     * Called when Note Item content changes (e.g. user changes text)
+     * Autosave function
      */
     @Override
     public void onNoteItemContentChanged(){
@@ -264,6 +264,7 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
 
     /**
      * Called when focus changes (either user types on EditText or clicks in image)
+     * Switches focusedItem index
      * @param position
      * @param hasFocus
      */
@@ -280,6 +281,7 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
 
     /**
      * Called when user long clicks a view
+     * Popup menu with options: delete, @TODO: move to different index
      * @param position
      */
     @Override
@@ -309,45 +311,6 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
         popupMenu.show();
     }
 
-
-    public void clearHighlight(){
-        if (highlightedItem != 1){
-            Log.e("Highlights", "clearing highlights");
-            noteAdapter.clearHighlights();
-            highlightedItem = -1;
-        }
-    }
-
-    private void deleteItem(int position){
-        Log.e("Deletion", "Deleting an item. Position: " + position);
-
-        // remove items from the list
-        noteItems.remove(position);
-
-        // notify adapter
-        noteAdapter.notifyItemRemoved(position);
-
-        logNoteItems();
-
-        // update ordering for subsequent items in the list
-        for (int i = position; i < noteItems.size(); i++){
-            noteItems.get(i).setOrderIndex(i);
-        }
-
-        logNoteItems();
-
-        // notify the adapter of the item range changed for updating the view
-        noteAdapter.notifyItemRangeChanged(position, noteItems.size() - position);
-
-        saveNoteContent(); // @TODO must be changed to save to database
-    }
-
-    public void logNoteItems() {
-        for (int i = 0; i < noteItems.size(); i++) {
-            NoteItem item = noteItems.get(i);
-            Log.d("NoteItemLog", "Index: " + i + ", Type: " + item.getType() + ", Content: " + item.getContent());
-        }
-    }
     // ==============================
     // REGION: Image Handling
     // ==============================
@@ -450,12 +413,17 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
         }
     }
 
+    /**
+     * Deletes an image (given the Uri) from internal storage
+     * @param imageUri
+     * @return
+     */
     private boolean deleteImageFromInternalStorage(Uri imageUri) {
         try {
             // Get the file's name from the URI
             String fileName = new File(imageUri.getPath()).getName();
 
-            // Build the file's path within the app's internal storage directory
+            // Build the file's path
             File fileToDelete = new File(getFilesDir(), fileName);
 
             // Delete the file
@@ -471,6 +439,7 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
      * Case 1: Focused Item: EditText && isEmpty -> Replace with image and push EditText down
      * Case 2: Focused Item: EditText && !(isEmpty) -> Put image underneath EditText and create new EditText under image
      * Case 3: Focused Item: Image -> Put image underneath Image
+     * @TODO missed case... more testing
      * @param imageUri
      */
     public void insertImage(Uri imageUri) {
@@ -516,6 +485,49 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
         for (int i = focusedIndex + 1; i < noteItems.size(); i++) {
             noteItems.get(i).setOrderIndex(i);
         }
+    }
+
+    // ==============================
+    // REGION: Note Handling
+    // ==============================
+
+    /**
+     * Clears all highlights based on NoteAdapter function.
+     */
+    public void clearHighlight(){
+        if (highlightedItem != 1){
+            Log.e("Highlights", "clearing highlights");
+            noteAdapter.clearHighlights();
+            highlightedItem = -1;
+        }
+    }
+
+    /**
+     * Deletes a View (EditText, ImageView, etc.)
+     * @param position
+     */
+    private void deleteItem(int position){
+        Log.e("Deletion", "Deleting an item. Position: " + position);
+
+        // remove items from the list
+        noteItems.remove(position);
+
+        // notify adapter
+        noteAdapter.notifyItemRemoved(position);
+
+        logNoteItems();
+
+        // update ordering for subsequent items in the list
+        for (int i = position; i < noteItems.size(); i++){
+            noteItems.get(i).setOrderIndex(i);
+        }
+
+        logNoteItems();
+
+        // notify the adapter of the item range changed for updating the view
+        noteAdapter.notifyItemRangeChanged(position, noteItems.size() - position);
+
+        saveNoteContent();
     }
 
     // ==============================
@@ -676,14 +688,9 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
     }
 
 
-
     // ==============================
-    // REGION: Other
+    // REGION: Exiting Note
     // ==============================
-
-    /**
-     * This is called when the NoteAdapter notices changes made to noteItems
-     */
 
     /**
      * If back button is pressed
@@ -721,6 +728,18 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
         }
         finish();
     }
-}
 
-// @TODO change initRecyclerView listeners to implements & functions.
+    // ==============================
+    // REGION: Other
+    // ==============================
+
+    /**
+     * Testing Purposes. Can log all of the contents inside the NoteItems list.
+     */
+    public void logNoteItems() {
+        for (int i = 0; i < noteItems.size(); i++) {
+            NoteItem item = noteItems.get(i);
+            Log.d("NoteItemLog", "Index: " + i + ", Type: " + item.getType() + ", Content: " + item.getContent());
+        }
+    }
+}
