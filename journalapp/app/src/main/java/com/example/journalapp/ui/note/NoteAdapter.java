@@ -45,17 +45,6 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
     }
 
     /**
-     * Determines the type of view needed based on the position of the item
-     * @param position position to query
-     * @return
-     */
-    @Override
-    public int getItemViewType(int position) {
-        // Return the view type of the item at position for correct View holder binding
-        return noteItems.get(position).getType().ordinal();
-    }
-
-    /**
      * Inflates the appropriate ViewHolder for the given view type.
      * @param parent The ViewGroup into which the new View will be added after it is bound to
      *               an adapter position.
@@ -72,14 +61,14 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         if (viewType == NoteItem.ItemType.TEXT.ordinal()){
             View view = LayoutInflater.from(parent.getContext())
                     .inflate(com.example.journalapp.R.layout.item_note_text, parent, false);
-            return new TextViewHolder(view, onNoteItemChangeListener, onItemFocusChangeListener, onKeyListener); // text listener
+            return new TextViewHolder(view, onNoteItemChangeListener, onItemFocusChangeListener, onKeyListener);
         }
 
         // if image
         else if (viewType == NoteItem.ItemType.IMAGE.ordinal()){
             View view = LayoutInflater.from(parent.getContext())
                     .inflate(com.example.journalapp.R.layout.item_note_image, parent, false);
-            return new ImageViewHolder(view, onItemFocusChangeListener); // needs custom listener
+            return new ImageViewHolder(view, onItemFocusChangeListener);
         }
 
         // otherwise
@@ -124,6 +113,17 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
     }
 
     /**
+     * Determines the type of view needed based on the position of the item
+     * @param position position to query
+     * @return
+     */
+    @Override
+    public int getItemViewType(int position) {
+        // Return the view type of the item at position for correct View holder binding
+        return noteItems.get(position).getType().ordinal();
+    }
+
+    /**
      * Returns the size of the dataset
      * inveoked by layout manager
      * @return
@@ -131,6 +131,65 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
     @Override
     public int getItemCount() {
         return noteItems.size();
+    }
+
+    /**
+     * Gets the index of the currently focused item in the adapter.
+     * @return
+     */
+    public int getCurrentCursorIndex(){
+        return focusedItem;
+    }
+
+    /**
+     * Setter method to assign a listener for note item changes
+     * @param listener
+     */
+    public void setOnNoteItemChangeListener(OnNoteItemChangeListener listener){
+        this.onNoteItemChangeListener = listener;
+    }
+
+    /**
+     * Setter method to assign a listener for focused item in the adapter.
+     * @param listener
+     */
+    public void setOnItemFocusChangeListener(OnItemFocusChangeListener listener){
+        this.onItemFocusChangeListener = listener;
+    }
+
+    /**
+     * Setter method to assign a listener for keys pressed
+     * @param listener
+     */
+    public void setOnKeyListener(OnKeyListener listener){
+        this.onKeyListener = listener;
+    }
+
+    /**
+     * Highlights the item at the given position in the adapter
+     * @param position int position of item to be highlighted
+     * @TODO fix highlight UI
+     */
+    public void highlightItem(int position){
+
+        // Check if there's already a highlighted item
+        if (highlightedItem != null && highlightedItem != position){
+            notifyItemChanged(highlightedItem); // notify for rebinding
+        }
+
+        highlightedItem = position; // set new highlight
+        notifyItemChanged(position);
+    }
+
+    /**
+     * Clears any highlighted items in the adapter
+     */
+    public void clearHighlights(){
+        if (highlightedItem != null){
+            int oldPosition = highlightedItem;
+            highlightedItem = null;
+            notifyItemChanged(oldPosition); // rebind previously highlighted item
+        }
     }
 
     /**
@@ -152,57 +211,11 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
     }
 
     /**
-     * Listens for keys
+     * Interface implemented by activities or fragments that use this adapter.
+     * Used to notify when a key is pressed
      */
     public interface OnKeyListener {
         void onEnterKeyPressed(int position);
-    }
-
-    /**
-     * Setter method to assign a listener for note item changes
-     * @param listener
-     */
-    public void setOnNoteItemChangeListener(OnNoteItemChangeListener listener){
-        this.onNoteItemChangeListener = listener;
-    }
-
-    /**
-     * Setter method to assign a listener for focused item in the adapter.
-     * Sets the CLASS listener variable to the
-     * @param listener
-     */
-    public void setOnItemFocusChangeListener(OnItemFocusChangeListener listener){
-        this.onItemFocusChangeListener = listener;
-    }
-
-    public void setOnKeyListener(OnKeyListener listener){
-        this.onKeyListener = listener;
-    }
-
-    /**
-     * Getse the index of the currently focused item in the adapter.
-     *
-     * @return
-     */
-    public int getCurrentCursorIndex(){
-        return focusedItem;
-    }
-
-    public void highlightItem(int position){
-        // Clear previous highlight
-        if (highlightedItem != null && highlightedItem != position){
-            notifyItemChanged(highlightedItem);
-        }
-        highlightedItem = position; // set new highlight
-        notifyItemChanged(position); // notify to rebind ViewHolder
-    }
-
-    public void clearHighlights(){
-        if (highlightedItem != null){
-            int oldPosition = highlightedItem;
-            highlightedItem = null;
-            notifyItemChanged(oldPosition);
-        }
     }
 
     // ==============================
@@ -220,6 +233,8 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         // Auto save Variables
         private CompositeDisposable compositeDisposable = new CompositeDisposable();
         private static final long SAVE_DELAY = 1000; // Delay for 1 second before auto-saving
+
+        // Listeners
         private OnNoteItemChangeListener noteItemChangeListener;
         private OnItemFocusChangeListener focusChangeListener;
         private OnKeyListener onKeyListener;
@@ -238,10 +253,10 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
             this.onKeyListener = onKeyListener;
             editText = itemView.findViewById(R.id.edit_text_note_text);
 
-            // Check focus
-            editText.setOnFocusChangeListener((view, hasFocus) -> {
+            // Set up FocusChangeListener. Built-In Listener --> Custom Listener
+            editText.setOnFocusChangeListener((view, hasFocus) -> { // Built-in listener
                 if (hasFocus) {
-                    // update focused item index when EditText gains focus
+                    // Update focusedItem in Activity
                     focusChangeListener.onItemFocusChange(getAdapterPosition(), true);
 
                 }
@@ -250,14 +265,11 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
                 }
             });
 
-            // set on long click listener
-            editText.setOnLongClickListener(view -> {
-                // call the long click method from the lsitener
+            editText.setOnLongClickListener(view -> { // Built-in listener
+                // call the long click method from the listener
                 focusChangeListener.onItemLongClick(getAdapterPosition());
                 return true;
             });
-
-
         }
 
         /**
@@ -295,16 +307,15 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
             Observable<String> titleObservable = titleChangedObservable
                     .debounce(SAVE_DELAY, TimeUnit.MILLISECONDS);
 
-
             // Subscribe to observables to trigger a save to database
             compositeDisposable.addAll(
                     titleObservable.subscribe(this::saveNoteContents));
 
-            // Set highlights
+            // Set the highlight if this ViewHolder needs to be highlighted
             int backgroundId = isHighlighted ? R.drawable.edit_text_background_highlight : R.drawable.edit_text_background;
             editText.setBackgroundResource(backgroundId);
 
-           // set the key listener to watch for enter key
+            // OnKeyListener for enter key. @TODO not being used at the moment.
             editText.setOnKeyListener(new View.OnKeyListener(){
 
                 @Override
@@ -318,15 +329,6 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
                     return false; // do not consume event
                 }
             });
-        }
-
-        /**
-         * Clear the TextWatcher from the TextViewHolder
-         */
-        public void clearTextWatcher(){
-            if (compositeDisposable != null){
-                compositeDisposable.clear();
-            }
         }
 
         /**
@@ -345,6 +347,18 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
             }
         }
 
+        /**
+         * Clear the TextWatcher from the TextViewHolder
+         */
+        public void clearTextWatcher(){
+            if (compositeDisposable != null){
+                compositeDisposable.clear();
+            }
+        }
+
+        /**
+         * Requests focus for the EditText in this ViewHolder
+         */
         public void requestEditTextFocus(){
             editText.requestFocus();
 
@@ -374,14 +388,14 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
             imageView = itemView.findViewById(R.id.image_view_note_image);
 
 
-            // Check if in focus
+            // Set up FocusChangeListener (focus = touched)
             imageView.setFocusableInTouchMode(true);
-            imageView.setOnClickListener(v -> {
+            imageView.setOnClickListener(v -> { // Built-In Listener
                 // when image is clicked, consider as focused
                 focusChangeListener.onItemFocusChange(getAdapterPosition(), true);
             });
 
-            imageView.setOnLongClickListener(v -> {
+            imageView.setOnLongClickListener(v -> { // Built-In Listener
                 // when image is held, call long click method
                 focusChangeListener.onItemLongClick(getAdapterPosition());
 
