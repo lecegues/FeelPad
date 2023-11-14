@@ -8,7 +8,10 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
+import android.graphics.pdf.PdfDocument;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -44,6 +47,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -55,7 +59,7 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable;
  * Activity representing a single note page
  * Contains creation and saving of a note
  */
-public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNoteItemChangeListener {
+public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNoteItemChangeListener, NoteAdapter.OnItemFocusChangeListener {
 
     // Note Component Variables
     private EditText titleEditText;
@@ -83,26 +87,17 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
                 try{
                     // Handle returned Uri's
 
-                    // First, save to local storage
+                    // save to local storage and insert to image
                     Uri localUri = saveImageToInternalStorage(uri);
-
-                    // Create a new imageView and pass the uri to the adapter
-                    //noteItems.add(new NoteItem(NoteItem.ItemType.IMAGE,null,localUri.toString(), noteItems.size())); // @TODO how to manage orderIndex?
                     insertImage(localUri);
 
-                    // Notify the adapter that an item has been added
                     // noteAdapter.notifyItemInserted(noteItems.size() - 1);
-
-
                 } catch (Exception e){
                     e.printStackTrace();
                     Toast.makeText(NoteActivity.this, "Failed to insert image", Toast.LENGTH_SHORT).show();
                 }
 
-                if (uri != null) {
-                    // If null, handle it:
-
-                }
+                // If null, handle it:
             });
 
 
@@ -172,7 +167,7 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
         }));
 
         // Sets debounce time (ms) for title changes
-        /* 1 second */
+        /* 0.5 second */
         int SAVE_DELAY = 500;
         Observable<String> titleObservable = titleChangedObservable
                 .debounce(SAVE_DELAY, TimeUnit.MILLISECONDS);
@@ -235,69 +230,85 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
      * Initialize the RecyclerView that represents a Note's contents
      * Contents can include: EditTexts, ImageViews, etc.
      */
-    @SuppressLint("ClickableViewAccessibility")
     private void initRecyclerView(){
 
         // First initialize the noteItems variable
         noteItems = new ArrayList<>();
 
         // Initialize the RecyclerView and Adapter
-        RecyclerView noteContentRecyclerView = findViewById(R.id.recycler_view_notes); // Make sure this ID matches your layout
+        noteContentRecyclerView = findViewById(R.id.recycler_view_notes); // Make sure this ID matches your layout
         noteAdapter = new NoteAdapter(noteItems);
-
-        // Set the focus change listener
-        noteAdapter.setOnItemFocusChangeListener(new NoteAdapter.OnItemFocusChangeListener() {
-
-            // Called when focus changes (either user types on EditText or clicks in image)
-            @Override
-            public void onItemFocusChange(int position, boolean hasFocus) {
-                if (hasFocus){
-                    focusedItem = position;
-                    Log.e("Focus", "Focus has changed to position " + focusedItem);
-                }
-                else if (focusedItem == position){
-                    focusedItem = -1;
-                }
-            }
-
-            // Called when user long clicks a view
-            @Override
-            public void onItemLongClick(int position) {
-                Log.e("ItemLongClick", "Position #" + position + " has been long clicked.");
-
-                // highlight item in adapter
-                noteAdapter.highlightItem(position);
-                // update highlighteditem
-                highlightedItem = position;
-
-                // Find the view by position
-                View view = noteContentRecyclerView.findViewHolderForAdapterPosition(position).itemView;
-
-                // Create a PopupMenu
-                PopupMenu popupMenu = new PopupMenu(NoteActivity.this, view);
-                popupMenu.inflate(R.menu.delete_menu); // Inflate your menu resource
-                popupMenu.setOnMenuItemClickListener(item -> {
-                    if (item.getItemId() == R.id.action_delete) {
-                        // Perform deletion of the item
-                        deleteItem(position);
-                        return true;
-                    }
-                    // ... handle other menu item clicks if necessary
-                    return false;
-                });
-                popupMenu.show();
-            }
-
-
-        });
 
         // Set up the RecyclerView
         noteContentRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         noteContentRecyclerView.setAdapter(noteAdapter);
+
+        // Set all listeners
         noteAdapter.setOnNoteItemChangeListener(this); // notified to save if changes are made to noteItems
+        noteAdapter.setOnItemFocusChangeListener(this); // notified if focus is shifted
 
         // @TODO set up to remove from highlights if outside of a recyclerView is pressed
     }
+
+    // ==============================
+    // REGION: Listeners
+    // ==============================
+
+    /**
+     *
+     */
+    @Override
+    public void onNoteItemContentChanged(){
+        saveNoteContent();
+    }
+
+    /**
+     * Called when focus changes (either user types on EditText or clicks in image)
+     * @param position
+     * @param hasFocus
+     */
+    @Override
+    public void onItemFocusChange(int position, boolean hasFocus) {
+        if (hasFocus){
+            focusedItem = position;
+            Log.e("Focus", "Focus has changed to position " + focusedItem);
+        }
+        else if (focusedItem == position){
+            focusedItem = -1;
+        }
+    }
+
+    /**
+     * Called when user long clicks a view
+     * @param position
+     */
+    @Override
+    public void onItemLongClick(int position) {
+        Log.e("ItemLongClick", "Position #" + position + " has been long clicked.");
+
+        // highlight item in adapter
+        noteAdapter.highlightItem(position);
+        // update highlighteditem
+        highlightedItem = position;
+
+        // Find the view by position
+        View view = Objects.requireNonNull(noteContentRecyclerView.findViewHolderForAdapterPosition(position)).itemView;
+
+        // Create a PopupMenu
+        PopupMenu popupMenu = new PopupMenu(this, view);
+        popupMenu.inflate(R.menu.delete_menu); // Inflate your menu resource
+        popupMenu.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == R.id.action_delete) {
+                // Perform deletion of the item
+                deleteItem(position);
+                return true;
+            }
+            // ... handle other menu item clicks if necessary
+            return false;
+        });
+        popupMenu.show();
+    }
+
 
     public void clearHighlight(){
         if (highlightedItem != 1){
@@ -665,6 +676,7 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
     }
 
 
+
     // ==============================
     // REGION: Other
     // ==============================
@@ -672,10 +684,6 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
     /**
      * This is called when the NoteAdapter notices changes made to noteItems
      */
-    @Override
-    public void onNoteItemContentChanged(){
-        saveNoteContent();
-    }
 
     /**
      * If back button is pressed
@@ -714,3 +722,5 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
         finish();
     }
 }
+
+// @TODO change initRecyclerView listeners to implements & functions.
