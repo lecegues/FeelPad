@@ -1,9 +1,11 @@
 package com.example.journalapp.ui.note;
 
+import android.content.DialogInterface;
 import android.net.Uri;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,6 +32,7 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
     private List<NoteItem> noteItems; // noteItems passed from the NoteActivity
     private OnNoteItemChangeListener onNoteItemChangeListener; // listener to handle changes in note items
     private OnItemFocusChangeListener onItemFocusChangeListener; // listener to handle item focus
+    private OnKeyListener onKeyListener; // listener to handle key presses
     private int focusedItem = -1; // -1 means no focused item
     private Integer highlightedItem = -1; // -1 is invalid
 
@@ -69,7 +72,7 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         if (viewType == NoteItem.ItemType.TEXT.ordinal()){
             View view = LayoutInflater.from(parent.getContext())
                     .inflate(com.example.journalapp.R.layout.item_note_text, parent, false);
-            return new TextViewHolder(view, onNoteItemChangeListener, onItemFocusChangeListener); // text listener
+            return new TextViewHolder(view, onNoteItemChangeListener, onItemFocusChangeListener, onKeyListener); // text listener
         }
 
         // if image
@@ -143,12 +146,20 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
      * Used to notify when the focus has changed
      */
     public interface OnItemFocusChangeListener {
+        // methods indicate that its intended to handle two types of events
         void onItemFocusChange(int position, boolean hasFocus);
         void onItemLongClick(int position);
     }
 
     /**
-     * Setter method to assign a lsitener for note item changes
+     * Listens for keys
+     */
+    public interface OnKeyListener {
+        void onEnterKeyPressed(int position);
+    }
+
+    /**
+     * Setter method to assign a listener for note item changes
      * @param listener
      */
     public void setOnNoteItemChangeListener(OnNoteItemChangeListener listener){
@@ -157,10 +168,15 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
 
     /**
      * Setter method to assign a listener for focused item in the adapter.
+     * Sets the CLASS listener variable to the
      * @param listener
      */
     public void setOnItemFocusChangeListener(OnItemFocusChangeListener listener){
         this.onItemFocusChangeListener = listener;
+    }
+
+    public void setOnKeyListener(OnKeyListener listener){
+        this.onKeyListener = listener;
     }
 
     /**
@@ -206,6 +222,7 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         private static final long SAVE_DELAY = 1000; // Delay for 1 second before auto-saving
         private OnNoteItemChangeListener noteItemChangeListener;
         private OnItemFocusChangeListener focusChangeListener;
+        private OnKeyListener onKeyListener;
 
 
         /**
@@ -214,10 +231,11 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
          * @param noteItemChangeListener
          * @param focusChangeListener
          */
-        public TextViewHolder(View itemView, OnNoteItemChangeListener noteItemChangeListener, OnItemFocusChangeListener focusChangeListener) {
+        public TextViewHolder(View itemView, OnNoteItemChangeListener noteItemChangeListener, OnItemFocusChangeListener focusChangeListener, OnKeyListener onKeyListener) {
             super(itemView);
             this.noteItemChangeListener = noteItemChangeListener; // to pass onto save function later
             this.focusChangeListener = focusChangeListener;
+            this.onKeyListener = onKeyListener;
             editText = itemView.findViewById(R.id.edit_text_note_text);
 
             // Check focus
@@ -238,6 +256,7 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
                 focusChangeListener.onItemLongClick(getAdapterPosition());
                 return true;
             });
+
 
         }
 
@@ -284,6 +303,21 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
             // Set highlights
             int backgroundId = isHighlighted ? R.drawable.edit_text_background_highlight : R.drawable.edit_text_background;
             editText.setBackgroundResource(backgroundId);
+
+           // set the key listener to watch for enter key
+            editText.setOnKeyListener(new View.OnKeyListener(){
+
+                @Override
+                public boolean onKey(View view, int i, KeyEvent keyEvent) {
+                    if (keyEvent.getAction() == KeyEvent.ACTION_DOWN && i == keyEvent.KEYCODE_ENTER){
+                        if (onKeyListener != null){
+                            onKeyListener.onEnterKeyPressed(getAdapterPosition());
+                        }
+                        return true; // consume event
+                    }
+                    return false; // do not consume event
+                }
+            });
         }
 
         /**
@@ -309,6 +343,11 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
                     noteItemChangeListener.onNoteItemContentChanged();
                 }
             }
+        }
+
+        public void requestEditTextFocus(){
+            editText.requestFocus();
+
         }
     }
 
