@@ -12,7 +12,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * A Room Database for storing notes
+ * A Room Database storing notes
  * Note: entities section indicates database will have 1 table (represented inside Note.class)
  */
 @Database(entities = {Note.class}, version = 1, exportSchema = false)

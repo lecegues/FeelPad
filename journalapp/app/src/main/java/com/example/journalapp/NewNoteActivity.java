@@ -1,6 +1,7 @@
 package com.example.journalapp;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -11,9 +12,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.Editable;
-import android.text.Html;
 import android.text.Spannable;
-import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextWatcher;
@@ -26,7 +25,9 @@ import android.widget.EditText;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ImageView;
 
+import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -40,11 +41,13 @@ import com.example.journalapp.Utils.NoteMediaHandler;
 import com.example.journalapp.note.Note;
 import com.example.journalapp.note.NoteRepository;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
 import java.util.concurrent.ExecutorService;
@@ -66,14 +69,20 @@ public class NewNoteActivity extends AppCompatActivity {
     private EditText descriptionEditText;
     private Button BtnBold;
 
+    private Uri mCurrentPhotoUri;
+
+    private ActivityResultLauncher<Intent> activityResultLauncher;
+
     // Note Database Variables
     private NoteRepository noteRepository;
     private Note note;
     private final CompositeDisposable compositeDisposable = new CompositeDisposable();
     private final ExecutorService executorService = Executors.newSingleThreadExecutor(); // thread manager
 
+
     // Permissions Variables
     private static final int REQUEST_STORAGE_PERMISSION = 1;
+    private static final int REQUEST_CAMERA_PERMISSION = 1337;
 
     // Special member variable used to launch activities that expect a result
     private final ActivityResultLauncher<String> mGetContent =
@@ -91,6 +100,23 @@ public class NewNoteActivity extends AppCompatActivity {
                     // Do nothing
 
                 }
+            });
+    private final ActivityResultLauncher<Void> mTakePicture =
+            registerForActivityResult( new ActivityResultContracts.TakePicturePreview(), bitmap -> {
+                // Handle returned Uri's
+                Uri uri = null;
+                try {
+                    uri = saveImageFromBitmapToStorage(bitmap);
+                    Drawable drawable = getDrawableFromUri(uri);
+                    insertImageIntoText(drawable, uri);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Toast.makeText(NewNoteActivity.this, "Failed to insert image", Toast.LENGTH_SHORT).show();
+                }
+                if (uri != null) {
+                    // Do nothing
+                }
+
             });
 
     /**
@@ -224,14 +250,15 @@ public class NewNoteActivity extends AppCompatActivity {
                 /* Don't ask why it's not a switch statement, it's just not. */
                 if (menuItem.getItemId() == R.id.item1a) {
                     Toast.makeText(getApplicationContext(), "Take Photo/Video", Toast.LENGTH_SHORT).show();
+                    checkPermissionAndOpenCamera();
                     return true;
 
                 // if user wants to go into gallery to add photos to notes page
                 } else if (menuItem.getItemId() == R.id.item1b) {
                     System.out.println("Gallery button is pressed. Now asking for permission");
                     checkPermissionAndOpenGallery();
-
                     return true;
+
                 } else if (menuItem.getItemId() == R.id.item2) {
                     Toast.makeText(getApplicationContext(), "Add Voice Note", Toast.LENGTH_SHORT).show();
                     return true;
@@ -294,11 +321,19 @@ public class NewNoteActivity extends AppCompatActivity {
         if (ContextCompat.checkSelfPermission(getApplicationContext(),Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED){
             // if no permissions, request
             ActivityCompat.requestPermissions(NewNoteActivity.this, new String[] {Manifest.permission.READ_MEDIA_IMAGES},REQUEST_STORAGE_PERMISSION);
-        }
-
-        else{
+        }else{
             // if permission granted, go to gallery
             selectImage();
+        }
+    }
+
+    private void checkPermissionAndOpenCamera(){
+        if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
+            // Permission has not been granted for using Camera, request it
+            ActivityCompat.requestPermissions(NewNoteActivity.this, new String[] {Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
+        }else{
+            // Permission has been granted, go to the camera
+            takePicture();
         }
     }
 
@@ -337,6 +372,28 @@ public class NewNoteActivity extends AppCompatActivity {
     }
 
     /**
+     * Creates an intent to open the Camera
+     * Starts that intent
+     */
+    private void takePicture() {
+        mTakePicture.launch(null);
+    }
+
+    private Uri saveImageFromBitmapToStorage(Bitmap image) {
+        Uri uri = null;
+        try{
+            String imageName = "image_" + System.currentTimeMillis() + ".png";
+            FileOutputStream stream = openFileOutput(imageName, MODE_PRIVATE);
+            image.compress(Bitmap.CompressFormat.PNG, 100, stream);
+            stream.close();
+            return FileProvider.getUriForFile(this,"com.example.journalapp.fileprovider", new File(getFilesDir(), imageName));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    /**
      * Take the given Uri and turn into a Drawable
      * @param uri The Uri to create the Drawable from
      * @return Drawable object created from input stream of the Uri
@@ -351,6 +408,7 @@ public class NewNoteActivity extends AppCompatActivity {
         inputStream.close();
         return drawable;
     }
+
 
     /**
      * Inserts an image as a drawable into the EditText at the current cursor position
