@@ -596,5 +596,3 @@ public class NewNoteActivity extends AppCompatActivity {
         finish();
     }
 }
-
-// @TODO the photos inserted are treated as text, so can be deleted by just backspacing... still a little bit finnicky
