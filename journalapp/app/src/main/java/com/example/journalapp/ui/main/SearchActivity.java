@@ -1,4 +1,4 @@
-package com.example.journalapp;
+package com.example.journalapp.ui.main;
 
 import android.app.SearchManager;
 import android.content.Context;
@@ -12,16 +12,17 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.journalapp.note.NoteViewModel;
-
-import java.util.concurrent.TimeUnit;
+import com.example.journalapp.R;
+import com.example.journalapp.ui.main.NoteViewModel;
+import com.example.journalapp.ui.main.NoteListAdapter;
 
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 
 /**
  * the activity that receives the search query, searches for data,
- * and display the search results
+ * and display the search results.
+ * NOTE: Not working due to NoteDao getAllNotesWhereTitleDateDescContains
  */
 public class SearchActivity extends AppCompatActivity {
 
@@ -90,7 +91,7 @@ public class SearchActivity extends AppCompatActivity {
                 searchObservable.subscribe(this::performQuery));
     }
 
-    /**
+    /** @TODO Broken query
      * Perform the search query and update the recycler view
      *
      * @param query The search query

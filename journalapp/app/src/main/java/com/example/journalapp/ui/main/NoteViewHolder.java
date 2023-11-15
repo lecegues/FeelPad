@@ -1,4 +1,4 @@
-package com.example.journalapp.note;
+package com.example.journalapp.ui.main;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,7 +18,6 @@ import com.example.journalapp.R;
 public class NoteViewHolder extends RecyclerView.ViewHolder {
 
     private final TextView noteViewTitle;
-    private final TextView noteViewDescription;
 
     /**
      * Constructor for NoteViewHolder
@@ -28,18 +27,16 @@ public class NoteViewHolder extends RecyclerView.ViewHolder {
     public NoteViewHolder(@NonNull View itemView) {
         super(itemView);
         noteViewTitle = itemView.findViewById(R.id.noteTitle);
-        noteViewDescription = itemView.findViewById(R.id.noteDesc);
     }
 
     /**
      * Binds data to the ViewHolder
      *
      * @param title       title of the note to display
-     * @param description description of the note to display
      */
-    public void bind(String title, String description) {
+    public void bind(String title) {
         noteViewTitle.setText(title);
-        noteViewDescription.setText(description);
+        // noteViewDescription.setText(description); @TODO Part of ViewHolder problem. Show part of Recyclerview?
     }
 
     /**

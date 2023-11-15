@@ -1,4 +1,4 @@
-package com.example.journalapp;
+package com.example.journalapp.ui.main;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,7 +9,8 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.journalapp.note.NoteViewModel;
+import com.example.journalapp.ui.note.NoteActivity;
+import com.example.journalapp.R;
 
 /**
  * Main activity starts as the entry point for the app
@@ -50,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
         });
         addNoteButton.setOnClickListener(v -> {
             // Handle the click for the add note button here
-            Intent intent = new Intent(MainActivity.this, NewNoteActivity.class);
+            Intent intent = new Intent(MainActivity.this, NoteActivity.class);
 
             // intent has no note_id, so it is classified as a new note
             startActivity(intent);

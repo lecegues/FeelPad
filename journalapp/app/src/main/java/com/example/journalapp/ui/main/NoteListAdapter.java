@@ -1,4 +1,4 @@
-package com.example.journalapp;
+package com.example.journalapp.ui.main;
 
 
 import android.content.Intent;
@@ -10,8 +10,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 
-import com.example.journalapp.note.Note;
-import com.example.journalapp.note.NoteViewHolder;
+import com.example.journalapp.ui.note.NoteActivity;
+import com.example.journalapp.database.entity.Note;
 
 /**
  * Custom adapter for managing a Recyclerviews' list of notes
@@ -54,10 +54,9 @@ public class NoteListAdapter extends ListAdapter<Note, NoteViewHolder> {
     public void onBindViewHolder(NoteViewHolder holder, int position) {
         Note current = getItem(position);
         String title = current.getTitle();
-        String desc = current.getDescription();
+        // String desc = current.getDescription(); // @TODO ViewHolder needs to be able to hold contents of RecyclerView. Maybe like a snapshot of the first few contents of Recyclerview?
         Log.d("NoteListAdapter", "onBindViewHolder title: " + title);
-        Log.d("NoteListAdapter", "onBindViewHolder desc: " + desc);
-        holder.bind(title, desc);
+        holder.bind(title);
 
 
         /**
@@ -69,7 +68,7 @@ public class NoteListAdapter extends ListAdapter<Note, NoteViewHolder> {
             public void onClick(View v){
 
                 // Intent to go to the note editing page
-                Intent intent = new Intent(v.getContext(), NewNoteActivity.class);
+                Intent intent = new Intent(v.getContext(), NoteActivity.class);
 
                 // If note has an ID, its existing, otherwise, it is a new note
                 intent.putExtra("note_id", current.getId());
