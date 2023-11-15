@@ -14,7 +14,8 @@ public class NoteItem {
     // Enum to define types of items that can exist within a note
     public enum ItemType{
         TEXT,
-        IMAGE
+        IMAGE,
+        VIDEO
     }
     private String itemId; // unique identifier
     private ItemType type; // type of the note item (Enum)
@@ -93,8 +94,8 @@ public class NoteItem {
      * Getter for item content as an ImageURI
      * @return
      */
-    public Uri getContentImageUri(){
-        if (this.type == ItemType.IMAGE && this.content != null){
+    public Uri getContentMediaUri(){
+        if ( (this.type == ItemType.IMAGE || this.type == ItemType.VIDEO) && this.content != null){
             return Uri.parse(this.content);
         }
         return null;
@@ -102,11 +103,11 @@ public class NoteItem {
 
     /**
      * Setter for item content from URI to string
-     * @param imageUri
+     * @param mediaUri
      */
-    public void setContentImageUri(Uri imageUri){
-        if (imageUri != null){
-            this.content = imageUri.toString();
+    public void setContentMediaUri(Uri mediaUri){
+        if (mediaUri != null){
+            this.content = mediaUri.toString();
         }
         else{
             this.content = null;

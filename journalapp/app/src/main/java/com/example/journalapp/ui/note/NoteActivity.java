@@ -3,22 +3,17 @@ package com.example.journalapp.ui.note;
 import static com.example.journalapp.utils.ConversionUtil.convertNoteItemEntitiesToNoteItems;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.drawable.Drawable;
-import android.graphics.pdf.PdfDocument;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.PopupMenu;
@@ -42,7 +37,6 @@ import com.example.journalapp.database.NoteRepository;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -84,21 +78,30 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
 
     // Image Handling Variables
     // Special member variable used to launch activities that expect a result
-    private final ActivityResultLauncher<String> mGetContent =
-            registerForActivityResult( new ActivityResultContracts.GetContent(), uri -> {
-                try{
-                    // Handle returned Uri's
-
-                    // save to local storage and insert to image
-                    Uri localUri = saveImageToInternalStorage(uri);
-                    insertImage(localUri);
-
-                    // noteAdapter.notifyItemInserted(noteItems.size() - 1);
-                } catch (Exception e){
-                    e.printStackTrace();
-                    Toast.makeText(NoteActivity.this, "Failed to insert image", Toast.LENGTH_SHORT).show();
+    private final ActivityResultLauncher<Intent> mGetContent =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                    Uri uri = result.getData().getData();
+                    if (uri != null) {
+                        try {
+                            String mimeType = getContentResolver().getType(uri);
+                            if (mimeType != null) {
+                                if (mimeType.startsWith("image/")) {
+                                    // Handle image
+                                    Uri localUri = saveMediaToInternalStorage(uri, true); // true for image
+                                    insertMedia(localUri, NoteItem.ItemType.IMAGE);
+                                } else if (mimeType.startsWith("video/")) {
+                                    // Handle video
+                                    Uri localUri = saveMediaToInternalStorage(uri, false); // false for video
+                                    insertMedia(localUri, NoteItem.ItemType.VIDEO);
+                                }
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Toast.makeText(NoteActivity.this, "Failed to insert media", Toast.LENGTH_SHORT).show();
+                        }
+                    }
                 }
-
             });
 
     // Special member variable for drag and dropping contents @TODO change UI to be more visible
@@ -342,6 +345,7 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
 
     /**
      * Called by a button
+     * @TODO add permission check for videos as well
      * Checks for permissions to read images from storage
      * Permission Granted: Opens gallery for image selection
      * Permission not Granted: Request for permissions
@@ -350,13 +354,15 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
         // API Level 33+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
             // API Level 33+
-            if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
-                // if no permissions, request
-                ActivityCompat.requestPermissions(NoteActivity.this, new String[] {Manifest.permission.READ_MEDIA_IMAGES}, REQUEST_STORAGE_PERMISSION);
-            }
-            else {
-                // if permission granted, go to gallery
-                selectImage();
+            boolean hasImagePermission = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED;
+            boolean hasVideoPermission = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_MEDIA_VIDEO) == PackageManager.PERMISSION_GRANTED;
+
+            if (!hasImagePermission || !hasVideoPermission) {
+                // Request both permissions if either is not granted
+                ActivityCompat.requestPermissions(NoteActivity.this, new String[] {Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO}, REQUEST_STORAGE_PERMISSION);
+            } else {
+                // Permissions granted, open gallery
+                selectMedia();
             }
         }
 
@@ -373,7 +379,7 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
 
             else{
                 // if permission granted, go to gallery
-                selectImage();
+                selectMedia();
             }
     }
 
@@ -394,7 +400,7 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
         if (requestCode == REQUEST_STORAGE_PERMISSION && grantResults.length > 0){
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED){
                 // if permission granted, then allow access
-                selectImage();
+                selectMedia();
             }
             else{
 
@@ -406,44 +412,66 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
 
     /**
      * Launches an intent to open the gallery
-     * Allow the user to select an image
+     * @TODO Allow the user to select an image OR a video... should be able to do both
      */
-    private void selectImage(){
-        mGetContent.launch("image/*");
+    private void selectMedia(){
+        // MIME type for both images and videos
+        String[] mimeTypes = {"image/*", "video/*"};
+
+        // Launching the picker with the specified MIME types
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*");
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+        mGetContent.launch(intent);
     }
 
     /**
      * Save the image to internal storage so it still exists even if user deletes from gallery
      * -- should be called right after the user picks their image
-     * @param imageUri
+     * @TODO should be able to save videos as well (Multimedia)
      * @return
      */
-    private Uri saveImageToInternalStorage(Uri imageUri){
-        try{
-            // Open image using received Uri
-            InputStream inputStream = getContentResolver().openInputStream(imageUri);
-            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+    private Uri saveMediaToInternalStorage(Uri mediaUri, boolean isImage) {
+        try {
+            String fileName = (isImage ? "image_" : "video_") + System.currentTimeMillis() + (isImage ? ".png" : ".mp4");
+            File outputFile = new File(getFilesDir(), fileName);
+            FileOutputStream fos = new FileOutputStream(outputFile);
 
-            // Save image to app's internal storage
-            String imageName = "image_" + System.currentTimeMillis() + ".png";
-            FileOutputStream fos = openFileOutput(imageName, MODE_PRIVATE);
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
+            if (isImage) {
+                // Handle image saving
+                InputStream inputStream = getContentResolver().openInputStream(mediaUri);
+                Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
+                inputStream.close();
+            } else {
+                // Handle video saving
+                InputStream inputStream = getContentResolver().openInputStream(mediaUri);
+                byte[] buf = new byte[1024];
+                int len;
+                while ((len = inputStream.read(buf)) > 0) {
+                    fos.write(buf, 0, len);
+                }
+                inputStream.close();
+            }
+
             fos.close();
 
-            // return URI to saved image
-            return FileProvider.getUriForFile(this,"com.example.journalapp.fileprovider", new File(getFilesDir(), imageName));
+            // Return URI to saved media
+            return FileProvider.getUriForFile(this, "com.example.journalapp.fileprovider", outputFile);
         } catch (Exception e) {
             e.printStackTrace();
-            return null; // remember to handle using: if (uri != null)
+            return null; // Handle null in calling function
         }
     }
 
     /**
      * Deletes an image (given the Uri) from internal storage
+     * @TODO deleteMultimedia -> videos & images
      * @param imageUri
      * @return
      */
-    private boolean deleteImageFromInternalStorage(Uri imageUri) {
+    private boolean deleteMediaFromInternalStorage(Uri imageUri) {
         try {
             // Get the file's name from the URI
             String fileName = new File(imageUri.getPath()).getName();
@@ -465,9 +493,8 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
      * Case 2: Focused Item: EditText && !(isEmpty) -> Put image underneath EditText and create new EditText under image
      * Case 3: Focused Item: Image -> Put image underneath Image
      * @TODO missed case... more testing
-     * @param imageUri
      */
-    public void insertImage(Uri imageUri) {
+    public void insertMedia(Uri mediaUri, NoteItem.ItemType mediaType) {
         int focusedIndex = focusedItem;
 
         // Check if focus is within bounds of list
@@ -475,7 +502,7 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
             // Get currently focused note item
             NoteItem focusedNoteItem = noteItems.get(focusedIndex);
 
-            Log.e("Focus", "Focused item when inserting image: " + focusedItem);
+            Log.e("Focus", "Focused item when inserting media: " + focusedItem);
 
             // Determine type of focused note item
             switch (focusedNoteItem.getType()) {
@@ -483,26 +510,33 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
                     String textContent = focusedNoteItem.getContent();
                     if (textContent.isEmpty()) {
                         // Case 1: Empty EditText
-                        noteItems.set(focusedIndex, new NoteItem(NoteItem.ItemType.IMAGE, null, imageUri.toString(), focusedIndex));
+                        noteItems.set(focusedIndex, new NoteItem(mediaType, null, mediaUri.toString(), focusedIndex));
                         noteItems.add(focusedIndex + 1, new NoteItem(NoteItem.ItemType.TEXT, null, "", focusedIndex + 1));
                         noteAdapter.notifyItemChanged(focusedIndex);
                         noteAdapter.notifyItemInserted(focusedIndex + 1);
+                        Log.e("Media", "Media: " + mediaUri.toString() + " inserted to position: " + focusedIndex);
                     } else {
                         // Case 2: Non-Empty EditText
-                        noteItems.add(focusedIndex + 1, new NoteItem(NoteItem.ItemType.IMAGE, null, imageUri.toString(), focusedIndex + 1));
+                        noteItems.add(focusedIndex + 1, new NoteItem(mediaType, null, mediaUri.toString(), focusedIndex + 1));
                         noteItems.add(focusedIndex + 2, new NoteItem(NoteItem.ItemType.TEXT, null, "", focusedIndex + 2));
                         noteAdapter.notifyItemRangeInserted(focusedIndex + 1, 2);
+                        Log.e("Media", "Media: " + mediaUri.toString() + " inserted to position: " + focusedIndex + 1);
                     }
                     break;
                 case IMAGE:
-                    // Case 3: Image Focused
-                    noteItems.add(focusedIndex + 1, new NoteItem(NoteItem.ItemType.IMAGE, null, imageUri.toString(), focusedIndex + 1));
+                case VIDEO:
+                    // Case 3: Image or Video Focused
+                    // @TODO Handle video insertion as well (if all multimedia)
+
+                    noteItems.add(focusedIndex + 1, new NoteItem(mediaType, null, mediaUri.toString(), focusedIndex + 1));
                     noteAdapter.notifyItemInserted(focusedIndex + 1);
+                    Log.e("Media", "Media: " + mediaUri.toString() + " inserted to position: " + focusedIndex + 1);
                     break;
             }
         } else {
-            // If no item is focused, add the image at the end @TODO insert a text after?? (new case)
-            noteItems.add(new NoteItem(NoteItem.ItemType.IMAGE, null, imageUri.toString(), noteItems.size()));
+            // If no item is focused, add the media at the end
+            // @TODO insert a text after?? (new case)
+            noteItems.add(new NoteItem(mediaType, null, mediaUri.toString(), noteItems.size()));
             noteAdapter.notifyItemInserted(noteItems.size() - 1);
         }
 
@@ -510,6 +544,8 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
         for (int i = focusedIndex + 1; i < noteItems.size(); i++) {
             noteItems.get(i).setOrderIndex(i);
         }
+
+        logNoteItems();
     }
 
     // ==============================
@@ -666,10 +702,10 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
             for (NoteItemEntity entity : itemsToDelete) {
                 noteRepository.deleteNoteItem(entity);
 
-                // If the entity is of type IMAGE, delete from internal storage as well
-                if (entity.getType() == NoteItem.ItemType.IMAGE.ordinal()) {
+                // If the entity is of type IMAGE OR VIDEO, delete from internal storage as well @TODO if video as well
+                if (entity.getType() == NoteItem.ItemType.IMAGE.ordinal() || entity.getType() == NoteItem.ItemType.VIDEO.ordinal()) {
                     Uri imageUri = Uri.parse(entity.getContent()); // assuming the content is the URI in string format
-                    boolean deleted = deleteImageFromInternalStorage(imageUri);
+                    boolean deleted = deleteMediaFromInternalStorage(imageUri);
                     if (!deleted) {
                         // Handle the case where the image couldn't be deleted
                         Log.e("Delete Image", "Failed to delete image from internal storage.");

@@ -1,6 +1,5 @@
 package com.example.journalapp.ui.note;
 
-import android.content.DialogInterface;
 import android.net.Uri;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -10,9 +9,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -71,6 +73,13 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
             return new ImageViewHolder(view, onItemFocusChangeListener);
         }
 
+        // if video
+        else if (viewType == NoteItem.ItemType.VIDEO.ordinal()){
+            View view = LayoutInflater.from(parent.getContext())
+                    .inflate(com.example.journalapp.R.layout.item_note_video, parent, false);
+            return new VideoViewHolder(view, ((FragmentActivity) parent.getContext()).getSupportFragmentManager(), onItemFocusChangeListener);
+        }
+
         // otherwise
         else{
             Log.w("NoteRecyclerView", "Unknown View Type is trying to be displayed");
@@ -94,8 +103,12 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         // Bind the data to the holder based on the item type
         if (holder instanceof TextViewHolder) {
             ((TextViewHolder) holder).bind(noteItem, isHighlighted);
-        } else if (holder instanceof ImageViewHolder) {
+        }
+        else if (holder instanceof ImageViewHolder) {
             ((ImageViewHolder) holder).bind(noteItem, isHighlighted);
+        }
+        else if (holder instanceof VideoViewHolder){
+            ((VideoViewHolder) holder).bind(noteItem, isHighlighted);
         }
     }
 
@@ -413,7 +426,7 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
          * @param noteItem
          */
         public void bind(NoteItem noteItem, boolean isHighlighted) {
-            Uri imageUri = noteItem.getContentImageUri();
+            Uri imageUri = noteItem.getContentMediaUri();
             if (imageUri != null){
                 // Use Glide to load the iamge from the URI @TODO add .placeholders/error images
                 Glide.with(itemView.getContext())
@@ -424,6 +437,66 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
             // Set highlights
             int backgroundId = isHighlighted ? R.drawable.image_view_background_highlight : R.drawable.image_view_background;
             imageView.setBackgroundResource(backgroundId);
+        }
+    }
+
+    static class VideoViewHolder extends RecyclerView.ViewHolder{
+        private ImageView thumbnailView;
+        private ImageButton playButton;
+        private FragmentManager fragmentManager;
+        private OnItemFocusChangeListener focusChangeListener;
+
+        /**
+         * Constructs VideoViewHolder for content
+         * @param itemView
+         */
+        public VideoViewHolder(@NonNull View itemView, FragmentManager fragmentManager, OnItemFocusChangeListener focusChangeListener) {
+            super(itemView);
+            this.fragmentManager = fragmentManager;
+            thumbnailView = itemView.findViewById(R.id.video_thumbnail);
+            playButton = itemView.findViewById(R.id.play_button);
+
+            // Set up FocusChangeListener (focus = touched)
+            thumbnailView.setFocusableInTouchMode(true);
+            thumbnailView.setOnClickListener(v -> { // Built-In Listener
+                // when image is clicked, consider as focused
+                focusChangeListener.onItemFocusChange(getAdapterPosition(), true);
+            });
+
+            thumbnailView.setOnLongClickListener(v -> { // Built-In Listener
+                // when image is held, call long click method
+                focusChangeListener.onItemLongClick(getAdapterPosition());
+
+                // also consider as focused
+                focusChangeListener.onItemFocusChange(getAdapterPosition(), true);
+                return true;
+            });
+        }
+
+        public void bind(NoteItem noteItem, boolean isHighlighted){
+            Uri videoUri = noteItem.getContentMediaUri();
+            if (videoUri == null){
+                Log.e("Media", "videoURI is null");
+            }
+            // set play button visibility and onClickListener
+            playButton.setVisibility((View.VISIBLE));
+            playButton.setOnClickListener( v-> {
+                playVideo(videoUri);
+            });
+
+            // set highlights
+            // int backgroundId = isHighlighted ? R.drawable.thumbnail_view_background_highlight : R.drawable.thumbnail_view_background;
+            // thumbnailView.setBackgroundResource(backgroundId);
+
+        }
+
+        private void playVideo(Uri videoUri){
+            Log.e("Media", "Playing video on given Uri: " + videoUri.toString());
+            VideoPlayerFragment videoPlayerFragment = VideoPlayerFragment.newInstance(videoUri.toString());
+            videoPlayerFragment.show(fragmentManager, "videoPlayer");
+
+
+
         }
     }
 }
