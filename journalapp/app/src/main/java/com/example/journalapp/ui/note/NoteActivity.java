@@ -38,6 +38,7 @@ import com.example.journalapp.database.NoteRepository;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -77,6 +78,8 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
     // Permission Variables
     private static final int REQUEST_STORAGE_PERMISSION = 1;
 
+    private static final int REQUEST_CAMERA_PERMISSION = 1;
+
     // Media Handling Variables
     // Special member variable used to launch activities that expect a result
     private final ActivityResultLauncher<Intent> mGetContent =
@@ -104,6 +107,23 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
                         }
                     }
                 }
+            });
+
+    private final ActivityResultLauncher<Void> mTakePicture =
+            registerForActivityResult( new ActivityResultContracts.TakePicturePreview(), bitmap -> {
+                // Handle returned Uri's
+                Uri uri = null;
+                try {
+                    uri = saveImageFromBitmapToStorage(bitmap);
+                    insertMedia(uri, NoteItem.ItemType.IMAGE);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Toast.makeText(NoteActivity.this, "Failed to insert image", Toast.LENGTH_SHORT).show();
+                }
+                if (uri != null) {
+                    // Do nothing
+                }
+
             });
 
     // Special member variable for drag and dropping contents @TODO change UI to be more visible
@@ -226,7 +246,7 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
             popupMenu.setOnMenuItemClickListener(menuItem -> {
                 /* Don't ask why it's not a switch statement, it's just not. */
                 if (menuItem.getItemId() == R.id.item1a) {
-                    Toast.makeText(getApplicationContext(), "Take Photo/Video", Toast.LENGTH_SHORT).show();
+                    checkPermissionAndOpenCamera();
                     return true;
                 } else if (menuItem.getItemId() == R.id.item1b) {
                     Toast.makeText(getApplicationContext(), "Add Photo/Video From Library", Toast.LENGTH_SHORT).show();
@@ -381,6 +401,16 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
         }
     }
 
+    void checkPermissionAndOpenCamera(){
+        if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
+            // Permission has not been granted for using Camera, request it
+            ActivityCompat.requestPermissions(NoteActivity.this, new String[] {Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
+        }else{
+            // Permission has been granted, go to the camera
+            takePicture();
+        }
+    }
+
     /**
      * Callback for the result from requesting permissions
      * @param requestCode The request code in
@@ -426,6 +456,10 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
         mGetContent.launch(intent);
     }
 
+    private void takePicture(){
+        mTakePicture.launch(null);
+    }
+
     /**
      * Save the media to internal storage so it still exists even if user deletes from gallery
      * -- should be called right after the user picks their media
@@ -468,6 +502,19 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
         catch (Exception e) {
             e.printStackTrace();
             return null; // Handle null in calling function
+        }
+    }
+
+    private Uri saveImageFromBitmapToStorage(Bitmap image) {
+        Uri uri = null;
+        try{
+            String imageName = "image_" + System.currentTimeMillis() + ".png";
+            FileOutputStream stream = openFileOutput(imageName, MODE_PRIVATE);
+            image.compress(Bitmap.CompressFormat.PNG, 100, stream);
+            stream.close();
+            return FileProvider.getUriForFile(this,"com.example.journalapp.fileprovider", new File(getFilesDir(), imageName));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
