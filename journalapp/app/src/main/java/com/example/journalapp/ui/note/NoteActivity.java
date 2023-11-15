@@ -22,6 +22,7 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -76,7 +77,7 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
     // Permission Variables
     private static final int REQUEST_STORAGE_PERMISSION = 1;
 
-    // Image Handling Variables
+    // Media Handling Variables
     // Special member variable used to launch activities that expect a result
     private final ActivityResultLauncher<Intent> mGetContent =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -84,14 +85,15 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
                     Uri uri = result.getData().getData();
                     if (uri != null) {
                         try {
-                            String mimeType = getContentResolver().getType(uri);
+                            String mimeType = getContentResolver().getType(uri); // get MIME type
                             if (mimeType != null) {
                                 if (mimeType.startsWith("image/")) {
-                                    // Handle image
+                                    // Handle images
                                     Uri localUri = saveMediaToInternalStorage(uri, true); // true for image
                                     insertMedia(localUri, NoteItem.ItemType.IMAGE);
-                                } else if (mimeType.startsWith("video/")) {
-                                    // Handle video
+                                }
+                                else if (mimeType.startsWith("video/")) {
+                                    // Handle videos
                                     Uri localUri = saveMediaToInternalStorage(uri, false); // false for video
                                     insertMedia(localUri, NoteItem.ItemType.VIDEO);
                                 }
@@ -345,7 +347,6 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
 
     /**
      * Called by a button
-     * @TODO add permission check for videos as well
      * Checks for permissions to read images from storage
      * Permission Granted: Opens gallery for image selection
      * Permission not Granted: Request for permissions
@@ -360,27 +361,24 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
             if (!hasImagePermission || !hasVideoPermission) {
                 // Request both permissions if either is not granted
                 ActivityCompat.requestPermissions(NoteActivity.this, new String[] {Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO}, REQUEST_STORAGE_PERMISSION);
-            } else {
+            }
+            else {
                 // Permissions granted, open gallery
                 selectMedia();
             }
         }
-
         // API Level below 33
-        else{
+        else {
 
-        }
-            // API Below 33
-            if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+            if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 // if no permissions, request
-                ActivityCompat.requestPermissions(NoteActivity.this, new String[] {Manifest.permission.READ_EXTERNAL_STORAGE},REQUEST_STORAGE_PERMISSION);
+                ActivityCompat.requestPermissions(NoteActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_STORAGE_PERMISSION);
 
-            }
-
-            else{
+            } else {
                 // if permission granted, go to gallery
                 selectMedia();
             }
+        }
     }
 
     /**
@@ -411,77 +409,82 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
     }
 
     /**
-     * Launches an intent to open the gallery
-     * @TODO Allow the user to select an image OR a video... should be able to do both
+     * Launches an intent to open files for both images and videos
      */
     private void selectMedia(){
         // MIME type for both images and videos
         String[] mimeTypes = {"image/*", "video/*"};
 
-        // Launching the picker with the specified MIME types
+        // Create intent to pick data
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
+
+        // Sets allowed types to ALL types then filters only image/video mimetypes
         intent.setType("*/*");
         intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+
         mGetContent.launch(intent);
     }
 
     /**
-     * Save the image to internal storage so it still exists even if user deletes from gallery
-     * -- should be called right after the user picks their image
-     * @TODO should be able to save videos as well (Multimedia)
-     * @return
+     * Save the media to internal storage so it still exists even if user deletes from gallery
+     * -- should be called right after the user picks their media
+     * @param mediaUri the URI of the media type
+     * @param isImage whether or not the media is an image. For identification
+     * @return the internal storage URI
      */
+    @Nullable
     private Uri saveMediaToInternalStorage(Uri mediaUri, boolean isImage) {
         try {
-            String fileName = (isImage ? "image_" : "video_") + System.currentTimeMillis() + (isImage ? ".png" : ".mp4");
+            // Create appropriate filename with timestamp and create new file object
+            String fileName = (isImage ? "image_" : "video_") + System.currentTimeMillis() + (isImage ? ".png" : ".mp4"); // if image, .png, otherwise, .mp4
             File outputFile = new File(getFilesDir(), fileName);
+
+            // opens a stream to write data to new file
             FileOutputStream fos = new FileOutputStream(outputFile);
+            InputStream inputStream = getContentResolver().openInputStream(mediaUri);
 
             if (isImage) {
-                // Handle image saving
-                InputStream inputStream = getContentResolver().openInputStream(mediaUri);
+                // If image, process as bitmap
                 Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
-                inputStream.close();
+
             } else {
-                // Handle video saving
-                InputStream inputStream = getContentResolver().openInputStream(mediaUri);
-                byte[] buf = new byte[1024];
+                // if video, copy data directly
+                byte[] buf = new byte[1024]; // buffer for data transfer
                 int len;
                 while ((len = inputStream.read(buf)) > 0) {
                     fos.write(buf, 0, len);
                 }
-                inputStream.close();
             }
 
+            // close both streams
+            inputStream.close();
             fos.close();
 
             // Return URI to saved media
             return FileProvider.getUriForFile(this, "com.example.journalapp.fileprovider", outputFile);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             e.printStackTrace();
             return null; // Handle null in calling function
         }
     }
 
     /**
-     * Deletes an image (given the Uri) from internal storage
-     * @TODO deleteMultimedia -> videos & images
-     * @param imageUri
+     * Deletes media (image,video) given the URI, from internal storage
+     * @param mediaUri
      * @return
      */
-    private boolean deleteMediaFromInternalStorage(Uri imageUri) {
+    private boolean deleteMediaFromInternalStorage(Uri mediaUri) {
         try {
-            // Get the file's name from the URI
-            String fileName = new File(imageUri.getPath()).getName();
-
-            // Build the file's path
+            // Get the file's name from the URI, build, then delete file
+            String fileName = new File(mediaUri.getPath()).getName();
             File fileToDelete = new File(getFilesDir(), fileName);
-
-            // Delete the file
             return fileToDelete.delete();
-        } catch (Exception e) {
+
+        }
+        catch (Exception e) {
             e.printStackTrace();
             return false;
         }
@@ -526,8 +529,6 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
                 case IMAGE:
                 case VIDEO:
                     // Case 3: Image or Video Focused
-                    // @TODO Handle video insertion as well (if all multimedia)
-
                     noteItems.add(focusedIndex + 1, new NoteItem(mediaType, null, mediaUri.toString(), focusedIndex + 1));
                     noteAdapter.notifyItemInserted(focusedIndex + 1);
                     Log.e("Media", "Media: " + mediaUri.toString() + " inserted to position: " + focusedIndex + 1);
@@ -702,7 +703,7 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
             for (NoteItemEntity entity : itemsToDelete) {
                 noteRepository.deleteNoteItem(entity);
 
-                // If the entity is of type IMAGE OR VIDEO, delete from internal storage as well @TODO if video as well
+                // If the entity is of type IMAGE OR VIDEO, delete from internal storage as well
                 if (entity.getType() == NoteItem.ItemType.IMAGE.ordinal() || entity.getType() == NoteItem.ItemType.VIDEO.ordinal()) {
                     Uri imageUri = Uri.parse(entity.getContent()); // assuming the content is the URI in string format
                     boolean deleted = deleteMediaFromInternalStorage(imageUri);
