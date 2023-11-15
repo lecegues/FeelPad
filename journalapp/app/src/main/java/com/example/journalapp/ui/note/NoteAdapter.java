@@ -453,6 +453,7 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         public VideoViewHolder(@NonNull View itemView, FragmentManager fragmentManager, OnItemFocusChangeListener focusChangeListener) {
             super(itemView);
             this.fragmentManager = fragmentManager;
+            this.focusChangeListener = focusChangeListener;
             thumbnailView = itemView.findViewById(R.id.video_thumbnail);
             playButton = itemView.findViewById(R.id.play_button);
 
@@ -473,18 +474,26 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
             });
         }
 
+        /**
+         * Binds the video content to a placeholder thumbnail.
+         * When play button is pressed, starts a fragment that plays the video
+         * @param noteItem
+         */
         public void bind(NoteItem noteItem, boolean isHighlighted){
             Uri videoUri = noteItem.getContentMediaUri();
+
+            // Testing
             if (videoUri == null){
                 Log.e("Media", "videoURI is null");
             }
+
             // set play button visibility and onClickListener
             playButton.setVisibility((View.VISIBLE));
             playButton.setOnClickListener( v-> {
                 playVideo(videoUri);
             });
 
-            // set highlights
+            // set highlights @TODO fix highlights
             // int backgroundId = isHighlighted ? R.drawable.thumbnail_view_background_highlight : R.drawable.thumbnail_view_background;
             // thumbnailView.setBackgroundResource(backgroundId);
 
@@ -494,8 +503,6 @@ public class NoteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
             Log.e("Media", "Playing video on given Uri: " + videoUri.toString());
             VideoPlayerFragment videoPlayerFragment = VideoPlayerFragment.newInstance(videoUri.toString());
             videoPlayerFragment.show(fragmentManager, "videoPlayer");
-
-
 
         }
     }
