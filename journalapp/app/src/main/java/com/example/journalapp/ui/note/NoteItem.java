@@ -20,7 +20,6 @@ public class NoteItem {
     private String itemId; // unique identifier
     private ItemType type; // type of the note item (Enum)
     private String content; // can store either text or string representation of the URI
-
     private int orderIndex; // keep track of order in a list
 
     /**
