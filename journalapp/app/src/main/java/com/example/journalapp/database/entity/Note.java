@@ -27,16 +27,21 @@ public class Note {
     @ColumnInfo(name = "create_date")
     private String createdDate;
 
+    @ColumnInfo(name = "emotion")
+    private int emotion; // This will hold an int value 1-5
+
+
     /**
      * Constructor to create a new Note instance
      *
      * @param title       String representing title of the note
      * @param createdDate String representing when the note was created
      */
-    public Note(String title, String createdDate) {
+    public Note(String title, String createdDate, int emotion) {
         this.id = UUID.randomUUID().toString();
         this.title = title;
         this.createdDate = createdDate;
+        this.emotion = emotion;
     }
 
     @NonNull
@@ -56,6 +61,10 @@ public class Note {
         this.title = title;
     }
 
+    public int getEmotion(){ return emotion;}
+
+    public void setEmotion(int emotion){ this.emotion = emotion; }
+
     public String getCreatedDate() {
         return createdDate;
     }
@@ -63,6 +72,7 @@ public class Note {
     public void setCreatedDate(String createDate) {
         this.createdDate = createDate;
     }
+
 
     /**
      * Indicates if two notes are equal

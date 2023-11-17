@@ -15,7 +15,9 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.Toast;
 
@@ -155,6 +157,14 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
     protected void onCreate(Bundle saveInstanceState) {
         super.onCreate(saveInstanceState);
         setContentView(R.layout.activity_note);
+
+        ImageButton openReactionMenu = findViewById(R.id.reactionMenu);
+
+        openReactionMenu.setOnClickListener(v -> {
+            Intent intent = new Intent(NoteActivity.this, ReactionActivity.class);
+            saveNoteContent();
+            startActivity(intent);
+        });
 
         // Initialize UI Widgets & set current date
         initWidgets();
@@ -650,7 +660,7 @@ public class NoteActivity extends AppCompatActivity implements NoteAdapter.OnNot
     private void setNewNote() {
 
         Date currentDate = new Date();
-        note = new Note("", currentDate.toString());
+        note = new Note("", currentDate.toString(), 1);
         noteRepository.insertNote(note);
 
         // Initialize the contents of noteItems as a single EditText
