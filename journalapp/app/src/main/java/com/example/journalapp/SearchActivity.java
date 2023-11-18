@@ -14,8 +14,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.journalapp.note.NoteViewModel;
 
-import java.util.concurrent.TimeUnit;
-
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 
@@ -68,9 +66,7 @@ public class SearchActivity extends AppCompatActivity {
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         noteSearchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
 
-        cancelNoteSearchButton.setOnClickListener(view -> {
-            finish();
-        });
+        cancelNoteSearchButton.setOnClickListener(view -> finish());
 
         Observable<String> searchObservable = Observable.create(emitter -> noteSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override

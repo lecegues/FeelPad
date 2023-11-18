@@ -21,14 +21,18 @@
             </intent-filter>
         </activity>
         <activity android:name=".NewNoteActivity" />
-        <activity android:name=".SearchActivity"
+        <activity
+            android:name=".SearchActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
             </intent-filter>
-            <meta-data android:name="android.app.searchable"
-                android:resource="@xml/searchable"/>
+            <meta-data
+                android:name="android.app.searchable"
+                android:resource="@xml/searchable" />
         </activity>
+        <activity android:name=".exportpdf.ExportPdfDialog" />
+        <activity android:name=".exportpdf.SelectPdfContentsActivity" />
     </application>
 
 </manifest>
