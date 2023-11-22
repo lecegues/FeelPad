@@ -61,7 +61,7 @@ public class NewNoteActivity extends AppCompatActivity {
     protected void onCreate(Bundle saveInstanceState) {
         super.onCreate(saveInstanceState);
         Intent intent = getIntent();
-        
+
         if (intent.hasExtra("themeBackground")) {
             int themeBackgroundId = intent.getIntExtra("themeBackground", 0);
             setContentView(themeBackgroundId);
