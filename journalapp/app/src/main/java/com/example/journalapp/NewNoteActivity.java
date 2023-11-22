@@ -61,18 +61,7 @@ public class NewNoteActivity extends AppCompatActivity {
     protected void onCreate(Bundle saveInstanceState) {
         super.onCreate(saveInstanceState);
         Intent intent = getIntent();
-
-        // Check if a theme background is provided
-//        if (intent.hasExtra("themeBackground")) {
-//            int themeBackgroundId = intent.getIntExtra("themeBackground", 0);
-//            setContentView(themeBackgroundId);
-//            // Set the theme background
-//            //getWindow().setBackgroundDrawableResource(themeBackgroundId);
-//
-//        }
-//        else{
-//            setContentView(R.layout.activity_note);
-//        }
+        
         if (intent.hasExtra("themeBackground")) {
             int themeBackgroundId = intent.getIntExtra("themeBackground", 0);
             setContentView(themeBackgroundId);
