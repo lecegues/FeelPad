@@ -1,6 +1,9 @@
 package com.example.journalapp;
-
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -33,8 +36,14 @@ public class NewNoteActivity extends AppCompatActivity {
     private TextView dateTextView;
     private EditText titleEditText;
     private EditText descriptionEditText;
+
     private NoteRepository noteRepository;
     private Note note;
+
+    public static final String THEME_PREFERENCES = "theme_preferences";
+    public static final String SELECTED_THEME = "selected_theme";
+
+
     private final CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     /* ExecutorService-- must be used because database operations can
@@ -54,16 +63,28 @@ public class NewNoteActivity extends AppCompatActivity {
         Intent intent = getIntent();
 
         // Check if a theme background is provided
+//        if (intent.hasExtra("themeBackground")) {
+//            int themeBackgroundId = intent.getIntExtra("themeBackground", 0);
+//            setContentView(themeBackgroundId);
+//            // Set the theme background
+//            //getWindow().setBackgroundDrawableResource(themeBackgroundId);
+//
+//        }
+//        else{
+//            setContentView(R.layout.activity_note);
+//        }
         if (intent.hasExtra("themeBackground")) {
             int themeBackgroundId = intent.getIntExtra("themeBackground", 0);
             setContentView(themeBackgroundId);
-
-                // Set the theme background
-            //getWindow().setBackgroundDrawableResource(themeBackgroundId);
-
-        }
-        else{
-            setContentView(R.layout.activity_note);
+            saveThemeToPreferences(String.valueOf(themeBackgroundId));
+        } else {
+            // If no theme is provided, load the default theme from SharedPreferences
+            String savedTheme = getThemeFromPreferences();
+            if (savedTheme != null && !savedTheme.isEmpty()) {
+                setContentView(Integer.parseInt(savedTheme));
+            } else {
+                setContentView(R.layout.activity_note);
+            }
         }
 
         initWidgets();
@@ -80,6 +101,24 @@ public class NewNoteActivity extends AppCompatActivity {
             setNewNote();
         }
     }
+    private void saveThemeToPreferences(String themeId) {
+        SharedPreferences preferences = getSharedPreferences(THEME_PREFERENCES, MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putString(SELECTED_THEME, themeId);
+        editor.apply();
+    }
+
+    /**
+     * Retrieve the selected theme from SharedPreferences
+     *
+     * @return The resource ID of the selected theme, or null if not found
+     */
+    private String getThemeFromPreferences() {
+        SharedPreferences preferences = getSharedPreferences(THEME_PREFERENCES, MODE_PRIVATE);
+        return preferences.getString(SELECTED_THEME, null);
+    }
+
+
 
     /**
      * Initializes UI widgets, ViewModel, and set the edit text watcher with debouncing.
@@ -192,6 +231,14 @@ public class NewNoteActivity extends AppCompatActivity {
                     return true;
                 } else if (menuItem.getItemId() == R.id.item5) {
                     Toast.makeText(getApplicationContext(), "Add Template", Toast.LENGTH_SHORT).show();
+                    //openThemeActivity();
+
+                    return true;
+                }
+                else if (menuItem.getItemId() == R.id.item6) {
+                    Toast.makeText(getApplicationContext(), "Remove Theme", Toast.LENGTH_SHORT).show();
+                    removeThemeFromPreferences();
+                    recreate();
                     return true;
                 }
                 return true;
@@ -199,16 +246,32 @@ public class NewNoteActivity extends AppCompatActivity {
         });
     }
 
+    private void openThemeActivity(){
+        Intent intent = new Intent(NewNoteActivity.this, ThemeSelectionActivity.class);
+        startActivity(intent);
+    }
+
+    private void removeThemeFromPreferences() {
+        SharedPreferences preferences = getSharedPreferences(THEME_PREFERENCES, MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.remove(SELECTED_THEME);
+        editor.apply();
+    }
+
+
     /**
      * Initialize a new note with a date and store it
      * in the database
      */
     private void setNewNote() {
         Date currentDate = new Date();
+        //String defaultThemeId = String.valueOf(R.layout.activity_note);
         note = new Note("", "", currentDate.toString());
         dateTextView.setText(note.getCreatedDate());
+        //saveThemeToPreferences(defaultThemeId);
         noteRepository.insertNote(note);
     }
+
 
     /**
      * Initialize an existing note with date, title, and description
@@ -239,9 +302,14 @@ public class NewNoteActivity extends AppCompatActivity {
                 dateTextView.setText(note.getCreatedDate());
                 titleEditText.setText(note.getTitle());
                 descriptionEditText.setText(note.getDescription());
+                //applyThemeToNote();
+
+
+
             });
         });
     }
+
 
     /**
      * Save note title locally and to database
@@ -264,6 +332,9 @@ public class NewNoteActivity extends AppCompatActivity {
         note.setDescription(description);
         noteRepository.updateNoteDescription(note);
     }
+
+
+
 
     /**
      * Remove the note from the database if there is, no

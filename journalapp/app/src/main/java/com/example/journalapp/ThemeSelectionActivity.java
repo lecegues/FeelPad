@@ -1,5 +1,6 @@
 package com.example.journalapp;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -9,12 +10,15 @@ import android.widget.ImageButton;
 
 
 public class ThemeSelectionActivity extends AppCompatActivity {
-        @Override
-        protected void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            setContentView(R.layout.activity_theme);
-            selection();
-        }
+
+    public static final String THEME_PREFERENCES = "theme_preferences";
+    public static final String SELECTED_THEME = "selected_theme";
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_theme);
+        selection();
+    }
     private void selection() {
         ImageButton theme1 = findViewById(R.id.sky);
         ImageButton theme2 = findViewById(R.id.beach);
@@ -40,12 +44,23 @@ public class ThemeSelectionActivity extends AppCompatActivity {
         });
     }
 
+
     private void noteTheme(int themeBackground){
-        Intent intent = new Intent(ThemeSelectionActivity.this, NewNoteActivity.class);
-        intent.putExtra("themeBackground", themeBackground);
-        startActivity(intent);
+        saveThemeToPreferences(String.valueOf(themeBackground));
+
+        // Create an intent to return the selected theme to the MainActivity
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra("themeBackground", themeBackground);
+        setResult(RESULT_OK, resultIntent);
+
+        // Finish the ThemeSelectionActivity
+        finish();
 
     }
+    private void saveThemeToPreferences(String themeId) {
+        SharedPreferences preferences = getSharedPreferences(THEME_PREFERENCES, MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putString(SELECTED_THEME, themeId);
+        editor.apply();
+    }
 }
-
-
