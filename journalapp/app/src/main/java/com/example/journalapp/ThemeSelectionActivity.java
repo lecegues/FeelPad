@@ -7,7 +7,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.util.Log;
 import android.widget.ImageButton;
-
+/*
+Allows user to select a theme for their note page from a list of themes
+ */
 
 public class ThemeSelectionActivity extends AppCompatActivity {
 
@@ -19,6 +21,8 @@ public class ThemeSelectionActivity extends AppCompatActivity {
         setContentView(R.layout.activity_theme);
         selection();
     }
+
+
     private void selection() {
         ImageButton theme1 = findViewById(R.id.sky);
         ImageButton theme2 = findViewById(R.id.beach);
@@ -27,19 +31,19 @@ public class ThemeSelectionActivity extends AppCompatActivity {
 
 
         theme1.setOnClickListener(v -> {
-            //Log.d("ThemeSelectionActivity", "Theme1 button clicked");
+            Log.d("ThemeSelectionActivity", "Theme1 button clicked");
             noteTheme(R.layout.activity_theme1);
         });
         theme2.setOnClickListener(v -> {
-            //Log.d("ThemeSelectionActivity", "Theme2 button clicked");
+            Log.d("ThemeSelectionActivity", "Theme2 button clicked");
             noteTheme(R.layout.activity_theme2);
         });
         theme3.setOnClickListener(v -> {
-            //Log.d("ThemeSelectionActivity", "Theme3 button clicked");
+            Log.d("ThemeSelectionActivity", "Theme3 button clicked");
             noteTheme(R.layout.activity_theme3);
         });
         theme4.setOnClickListener(v -> {
-            //Log.d("ThemeSelectionActivity", "Theme4 button clicked");
+            Log.d("ThemeSelectionActivity", "Theme4 button clicked");
             noteTheme(R.layout.activity_theme4);
         });
     }
@@ -48,7 +52,7 @@ public class ThemeSelectionActivity extends AppCompatActivity {
     private void noteTheme(int themeBackground){
         saveThemeToPreferences(String.valueOf(themeBackground));
 
-        // Create an intent to return the selected theme to the MainActivity
+        // an intent to return the selected theme to the MainActivity
         Intent resultIntent = new Intent();
         resultIntent.putExtra("themeBackground", themeBackground);
         setResult(RESULT_OK, resultIntent);
