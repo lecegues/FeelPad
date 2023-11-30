@@ -14,6 +14,7 @@
     <string name="title_activity_maps">MapsActivity</string><string name="addfolder">add folder button</string>
     <string name="folder_button">folder button</string>
     <string name="john_api_key">***REMOVED***</string>
+    <string name="kanwar_api_key">***REMOVED***</string>
 
     <string-array name="emotion_array">
         <item>N/A</item>
