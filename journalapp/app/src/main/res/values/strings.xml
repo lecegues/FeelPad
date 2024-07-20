@@ -13,8 +13,6 @@
     <string name="line">Line</string>
     <string name="title_activity_maps">MapsActivity</string><string name="addfolder">add folder button</string>
     <string name="folder_button">folder button</string>
-    REMOVED_API_KEY
-    REMOVED_API_KEY
 
     <string-array name="emotion_array">
         <item>N/A</item>
