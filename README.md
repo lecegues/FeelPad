@@ -22,6 +22,9 @@ FeelPad is an Android application developed for emotion-based journaling. It all
 Get the app from our [releases page](https://github.com/lecegues/FeelPad/releases) 
 
 ## Screenshots
+| <img src="images_readme/screenshot_1.jpg" alt="Apps Page" /> | <img src="images_readme/screenshot_2.jpg" alt="Dark Theme" />           | <img src="images_readme/screenshot_3.jpg" alt="Material You" />    |
+| ------------------------------------------------------ | ----------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| <img src="images_readme/screenshot_4.jpg" alt="App Page" />   | <img src="images_readme/screenshot_5.jpg" alt="App Options" /> | <img src="images_readme/screenshot_6.jpg" alt="App Web View" /> |
 
 ## Credits
 - Alex Liu (dal200)
